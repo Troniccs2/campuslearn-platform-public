@@ -1,0 +1,31 @@
+# Node modules (React)
+frontend/node_modules/
+node_modules/
+
+# Maven build files (Spring Boot)
+CampusLearn/target/
+target/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# React build
+frontend/build/
+
+# Maven wrapper
+.mvn/
+mvnw
+mvnw.cmd

@@ -1,9 +1,9 @@
 package com.thesensationals.campuslearn.models;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "tutors")
@@ -27,7 +27,7 @@ public class Tutor extends User {
 
     // Setters
     public void setEmployee_code(String employee_code) {
-        this.employee_code = employee;
+        this.employee_code = employee_code;
     }
 
     public void setApproved(Boolean approved) {
