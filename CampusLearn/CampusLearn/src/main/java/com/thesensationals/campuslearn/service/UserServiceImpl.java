@@ -1,7 +1,7 @@
 package com.thesensationals.campuslearn.service;
 
 import com.thesensationals.campuslearn.models.User;
-import com.thesensationals.campuslearn.repository.UserRepository;
+//import com.thesensationals.campuslearn.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
