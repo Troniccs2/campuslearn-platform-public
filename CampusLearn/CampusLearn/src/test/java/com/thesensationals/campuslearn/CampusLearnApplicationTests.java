@@ -1,12 +1,14 @@
-package com.TheSENsationals.CampusLearn;
+package com.thesensationals.campuslearn;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootApplication
-public class CampusLearnApplication {
+@SpringBootTest
+class CampusLearnApplicationTests {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CampusLearnApplication.class, args);
-	}
+    @Test
+    void contextLoads() {
+        // This test ensures the Spring application context loads correctly.
+        // It should contain no other class definitions.
+    }
 }

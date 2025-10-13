@@ -1,0 +1,66 @@
+### Define Environment Variables
+@baseUrl = http://localhost:8080
+@username = testuser
+@password = password123
+@email = testuser1@example.com
+@firstName = Test
+@lastName = User
+
+### Variable to store the JWT token after login
+# IMPORTANT: This will be set by the response filter in Request 2
+@token = 
+
+
+# -----------------------------------------------------------------------------
+# 1. Register a New User
+# Ensure your Registration DTO matches the JSON structure below.
+# -----------------------------------------------------------------------------
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+    
+    "password": "{{password}}",
+    "email": "{{email}}",
+    "firstName" : "{{firstName}}",
+    "lastName" : "{{lastName}}"
+}
+
+###
+
+# -----------------------------------------------------------------------------
+# 2. Login the User and Store the JWT Token
+# 🛑 FIX: The request body must ONLY contain the credentials (email/password).
+# -----------------------------------------------------------------------------
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Response Filter: Capture the token from the response (CRITICAL FIX)
+# 🛑 FIX: The response DTO uses 'accessToken', not 'token'.
+# 🛑 FIX: The response filter should be placed AFTER the body.
+@name = login
+@token = {{login.response.json.accessToken}} 
+
+
+# -----------------------------------------------------------------------------
+# 3. Access a Secured Endpoint (Test Authorization)
+# Replace /api/users/me with an actual secured endpoint from your controllers.
+# -----------------------------------------------------------------------------
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+###
+
+# -----------------------------------------------------------------------------
+# 4. Test Access WITHOUT a Token (Should return 401 Unauthorized)
+# -----------------------------------------------------------------------------
+GET {{baseUrl}}/api/users/me
+Content-Type: application/json
+
+###
