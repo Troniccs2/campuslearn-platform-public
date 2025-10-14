@@ -1,66 +1,39 @@
-### Define Environment Variables
-@baseUrl = http://localhost:8080
-@username = testuser
-@password = password123
-@email = testuser1@example.com
-@firstName = Test
-@lastName = User
-
-### Variable to store the JWT token after login
-# IMPORTANT: This will be set by the response filter in Request 2
-@token = 
-
-
-# -----------------------------------------------------------------------------
-# 1. Register a New User
-# Ensure your Registration DTO matches the JSON structure below.
-# -----------------------------------------------------------------------------
-POST {{baseUrl}}/api/auth/register
+### 1A. Successful Login
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-    
-    "password": "{{password}}",
-    "email": "{{email}}",
-    "firstName" : "{{firstName}}",
-    "lastName" : "{{lastName}}"
+    "email": "test.user@example.com",
+    "password": "StrongPassword123"
 }
 
-###
-
-# -----------------------------------------------------------------------------
-# 2. Login the User and Store the JWT Token
-# 🛑 FIX: The request body must ONLY contain the credentials (email/password).
-# -----------------------------------------------------------------------------
-POST {{baseUrl}}/api/auth/login
+### 1B. Failed Login - Wrong Password
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-    "email": "{{email}}",
-    "password": "{{password}}"
+    "email": "test.user@example.com",
+    "password": "wrongpassword"
 }
 
-### Response Filter: Capture the token from the response (CRITICAL FIX)
-# 🛑 FIX: The response DTO uses 'accessToken', not 'token'.
-# 🛑 FIX: The response filter should be placed AFTER the body.
-@name = login
-@token = {{login.response.json.accessToken}} 
-
-
-# -----------------------------------------------------------------------------
-# 3. Access a Secured Endpoint (Test Authorization)
-# Replace /api/users/me with an actual secured endpoint from your controllers.
-# -----------------------------------------------------------------------------
-GET {{baseUrl}}/api/users/me
-Authorization: Bearer {{token}}
+### 1C. Failed Login - User Not Found
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
-###
+{
+    "email": "nonexistent@example.com",
+    "password": "StrongPassword123"
+}
 
-# -----------------------------------------------------------------------------
-# 4. Test Access WITHOUT a Token (Should return 401 Unauthorized)
-# -----------------------------------------------------------------------------
-GET {{baseUrl}}/api/users/me
-Content-Type: application/json
+### 2A. Secured Endpoint Access (FAILURE)
+# This MUST return 401 Unauthorized.
+GET http://localhost:8080/api/users
 
-###
+### 2B. Secured Endpoint Access (SUCCESS)
+# Replace 'Base64EncodedCredentials' with the Base64 of 'test.user@example.com:StrongPassword123'
+GET http://localhost:8080/api/users 
+Authorization: Basic Base64EncodedCredentials
+
+### 2. Test Secured Endpoint (SUCCESS) - Rerun
+GET http://localhost:8080/api/users 
+Authorization: Basic dGVzdC51c2VyQGV4YW1wbGUuY29tOlN0cm9uZ1Bhc3N3b3JkMTIz

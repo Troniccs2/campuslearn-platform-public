@@ -14,6 +14,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+// Optional: Add Lombok annotations back if you were using them
+// import lombok.AllArgsConstructor;
+// import lombok.Data;
+// import lombok.NoArgsConstructor;
+// @Data
+// @AllArgsConstructor
+// @NoArgsConstructor 
+
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
@@ -24,8 +32,11 @@ public class User implements UserDetails {
     
     private String firstName;
     private String lastName;
+    
     @Column(unique = true, nullable = false)
-    private String email; 
+    private String email; // <-- Primary login field
+    
+    @Column(nullable = false) // Added nullable=false for the password field
     private String password; 
     
     // Fields for Forgot Password
@@ -51,9 +62,18 @@ public class User implements UserDetails {
     public LocalDateTime getTokenExpiryDate() { return tokenExpiryDate; }
     public void setTokenExpiryDate(LocalDateTime tokenExpiryDate) { this.tokenExpiryDate = tokenExpiryDate; }
     
-    // --- UserDetails Implementation (required by Spring Security) ---
+    // --- UserDetails Implementation (The Crucial Fix) ---
+    
+    /**
+     * FIX: Use email as the principal username for authentication.
+     * Your UserDetailsService must now use userRepository.findByEmail(email).
+     */
+    @Override 
+    public String getUsername() { 
+        return email; 
+    } 
+
     @Override public Collection<? extends GrantedAuthority> getAuthorities() { return List.of(); } 
-    @Override public String getUsername() { return email; } 
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
