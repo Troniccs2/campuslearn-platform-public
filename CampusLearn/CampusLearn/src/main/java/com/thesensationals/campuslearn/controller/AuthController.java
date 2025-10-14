@@ -30,9 +30,37 @@ public class AuthController {
             AuthResponse response = authenticationService.register(request);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
+            
+            // 🏆 CRITICAL DEBUGGING & ERROR HANDLING 🏆
+            System.err.println("--- Registration Exception Caught (Log below) ---");
+            e.printStackTrace(); // <-- Print the full stack trace to the console
+            System.err.println("-------------------------------------------------");
+            
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "An unknown error occurred during registration.";
+            
+            // Check for the *expected* business logic exception (Email already in use)
+            if (errorMessage.contains("Email is already registered")) {
+                // Return 409 Conflict for a business logic error
+                return new ResponseEntity<>(
+                    new AuthResponse("Registration failed. This email may already be in use."), 
+                    HttpStatus.CONFLICT // 409
+                );
+            } 
+            
+            // Handle request body validation issues (e.g., fields missing/invalid)
+            // Note: For best practice, use @Valid, but for debugging now:
+            if (e instanceof NullPointerException) {
+                // This is likely caused by missing mandatory fields (firstName/lastName) in the JSON payload
+                return new ResponseEntity<>(
+                    new AuthResponse("Registration failed: Missing required fields (firstName or lastName). Check payload."), 
+                    HttpStatus.BAD_REQUEST // 400
+                );
+            }
+            
+            // Handle all other unexpected exceptions (e.g., database connection down, coding bug)
             return new ResponseEntity<>(
-                new AuthResponse("Registration failed: " + e.getMessage()), 
-                HttpStatus.BAD_REQUEST
+                new AuthResponse("Registration failed due to an unexpected server error."), 
+                HttpStatus.INTERNAL_SERVER_ERROR // 500
             );
         }
     }
@@ -46,7 +74,7 @@ public class AuthController {
         } catch (Exception e) {
             return new ResponseEntity<>(
                 new AuthResponse("Login failed: " + e.getMessage()), 
-                HttpStatus.UNAUTHORIZED
+                HttpStatus.UNAUTHORIZED // 401
             );
         }
     }
@@ -60,7 +88,7 @@ public class AuthController {
         } catch (Exception e) {
             return new ResponseEntity<>(
                 new AuthResponse("Token generation failed: " + e.getMessage()), 
-                HttpStatus.NOT_FOUND
+                HttpStatus.NOT_FOUND // 404
             );
         }
     }
@@ -74,7 +102,7 @@ public class AuthController {
         } catch (Exception e) {
             return new ResponseEntity<>(
                 new AuthResponse("Password reset failed: " + e.getMessage()), 
-                HttpStatus.BAD_REQUEST
+                HttpStatus.BAD_REQUEST // 400
             );
         }
     }

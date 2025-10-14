@@ -33,7 +33,7 @@ public class User implements UserDetails {
     private String firstName;
     private String lastName;
     
-    @Column(unique = true, nullable = false)
+    //@Column(unique = true, nullable = false)
     private String email; // <-- Primary login field
     
     @Column(nullable = false) // Added nullable=false for the password field
