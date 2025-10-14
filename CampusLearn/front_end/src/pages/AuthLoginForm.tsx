@@ -14,6 +14,13 @@ import Footer from "../components/Footer";
 import api from "../services/api"; // 👈 Your configured Axios instance
 import { createBasicAuthToken } from "../utils/authUtils"; // 👈 Your Basic Auth utility
 
+// Define the expected structure of the successful login response
+interface LoginResponse {
+  message: string;
+  // Role is now explicitly required for a successful flow
+  userRole: "STUDENT" | "TUTOR" | "ADMIN";
+}
+
 const AuthLoginForm: React.FC = () => {
   const navigate = useNavigate();
 
@@ -35,27 +42,53 @@ const AuthLoginForm: React.FC = () => {
 
     try {
       // 1. Send credentials to the public login endpoint
-      const response = await api.post("/auth/login", { email, password });
+      const response = await api.post<LoginResponse>("/auth/login", {
+        email,
+        password,
+      });
 
       if (response.status === 200) {
-        // 2. SUCCESS: Create and store the Basic Auth token (Base64 email:password)
+        const userRole = response.data.userRole;
+        let redirectPath: string | null = null; // Initialize as null
+
+        // 2. Determine the specific redirect path based on the role
+        if (userRole === "STUDENT") {
+          redirectPath = "/student-dashboard";
+        } else if (userRole === "TUTOR") {
+          redirectPath = "/tutor-dashboard";
+        } else if (userRole === "ADMIN") {
+          redirectPath = "/admin-dashboard";
+        }
+
+        // 🚀 CRITICAL: If no valid role is found, halt the process
+        if (!redirectPath) {
+          throw new Error(
+            "Login failed: User role not provided or invalid. Please contact support."
+          );
+        }
+
+        // 3. SUCCESS: Store token and role, then redirect
         const token = createBasicAuthToken(email, password);
         localStorage.setItem("basicAuthToken", token);
+        localStorage.setItem("userRole", userRole);
 
         setSuccessMessage(
           response.data.message || "Login successful! Redirecting..."
         );
         setPassword("");
 
-        // Redirect to a secured area (Dashboard)
+        // Redirect after a short delay
+        const finalRedirectPath = redirectPath; // Use the determined valid path
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate(finalRedirectPath);
         }, 1500);
       }
     } catch (err: any) {
-      // Handle authentication failure (e.g., 401 Unauthorized)
+      // Handle authentication failure or the new role-check error
       const errorMessage =
-        err.response?.data?.message || "Login failed. Check credentials.";
+        err.message ||
+        err.response?.data?.message ||
+        "Login failed. Check credentials.";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
