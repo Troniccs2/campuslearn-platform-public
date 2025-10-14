@@ -9,6 +9,11 @@ import AuthLoginForm from "./pages/AuthLoginForm";
 import AuthRegistrationForm from "./pages/AuthRegistrationForm";
 import AuthForgotPasswordForm from "./pages/AuthForgotPasswordForm";
 
+import StudentDashboard from "./pages/StudentDashboard";
+import TutorDashboard from "./pages/TutorDashBoard";
+import AdminDashboard from "./pages/AdminDashboard";
+
+
 import "./App.css";
 
 const App: React.FC = () => {
@@ -26,6 +31,9 @@ const App: React.FC = () => {
           path="/auth/forgot-password"
           element={<AuthForgotPasswordForm />}
         />
+        <Route path="/dashboard/student" element={<StudentDashboard />} />
+        <Route path="/dashboard/tutor" element={<TutorDashboard />} />
+        <Route path="/dashboard/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>
   );
