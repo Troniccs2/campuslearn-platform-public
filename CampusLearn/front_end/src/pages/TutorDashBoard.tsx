@@ -6,7 +6,7 @@ import MicrosoftCopilotWidget from '../components/MicrosoftCopilotWidget';
 import AdminPanelWidget from '../components/AdminPanelWidget';
 import Header from '../components/Header'; // Import your Header
 import Footer from '../components/Footer'; // Import your Footer
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Import Link
 
 // --- PLACEHOLDER ICONS (Reuse from StudentDashboard) ---
 // IMPORTANT: Replace these with your actual icon imports (e.g., from 'react-icons/fa')
@@ -57,14 +57,18 @@ const TutorDashboard: React.FC = () => {
 
         {/* Dashboard Grid Icons */}
         <div className="grid grid-cols-2 gap-4 sm:gap-6">
-          <DashboardGridIcon title="TOPICS" Icon={TopicIcon} href="/tutor/topics" />
-          <DashboardGridIcon title="FORUMS" Icon={ForumIcon} href="/tutor/forums" />
-          <DashboardGridIcon title="PRIVATE MESSAGING" Icon={MessageIcon} href="/tutor/messages" />
-          <DashboardGridIcon title="PROFILE / SETTINGS" Icon={SettingsIcon} href="/tutor/profile" />
+          <DashboardGridIcon title="TOPICS" Icon={TopicIcon} href="/topics" />
+          <DashboardGridIcon title="FORUMS" Icon={ForumIcon} href="/forums" />
+          <DashboardGridIcon title="PRIVATE MESSAGING" Icon={MessageIcon} href="/messages" />
+          <DashboardGridIcon title="PROFILE / SETTINGS" Icon={SettingsIcon} href="/profile" />
         </div>
 
-        {/* Widgets */}
-        <MicrosoftCopilotWidget />
+        {/* 🌟 AI BUTTON / COPILOT LINK ADDED HERE 🌟 */}
+        {/* The entire widget is now clickable and acts as the AI button */}
+        <Link to="/copilot" className="block w-full">
+            <MicrosoftCopilotWidget />
+        </Link>
+        
         <AdminPanelWidget />
         
       </main>

@@ -51,8 +51,8 @@ const AdminDashboard: React.FC = () => {
         {/* Dashboard Grid Icons */}
         {/* Note: This grid only has 2 items based on the Admin prototype */}
         <div className="grid grid-cols-2 gap-4 sm:gap-6">
-          <DashboardGridIcon title="PRIVATE MESSAGING" Icon={MessageIcon} href="/admin/messages" />
-          <DashboardGridIcon title="PROFILE / SETTINGS" Icon={SettingsIcon} href="/admin/profile" />
+          <DashboardGridIcon title="PRIVATE MESSAGING" Icon={MessageIcon} href="/messages" />
+          <DashboardGridIcon title="PROFILE / SETTINGS" Icon={SettingsIcon} href="/profile" />
         </div>
 
         {/* Widgets */}

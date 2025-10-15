@@ -1,7 +1,7 @@
 // src/pages/StudentDashboard.tsx
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Import Link
 import DashboardGridIcon from '../components/DashboardGridIcon';
 import MicrosoftCopilotWidget from '../components/MicrosoftCopilotWidget';
 import Header from '../components/Header'; // Import your Header
@@ -56,13 +56,16 @@ const StudentDashboard: React.FC = () => {
 
         {/* Dashboard Grid Icons */}
         <div className="grid grid-cols-2 gap-4 sm:gap-6">
-          <DashboardGridIcon title="TOPICS" Icon={TopicIcon} href="/student/topics" />
-          <DashboardGridIcon title="FORUMS" Icon={ForumIcon} href="/student/forums" />
-          <DashboardGridIcon title="PRIVATE MESSAGING" Icon={MessageIcon} href="/student/messages" />
-          <DashboardGridIcon title="PROFILE / SETTINGS" Icon={SettingsIcon} href="/student/profile" />
+          <DashboardGridIcon title="TOPICS" Icon={TopicIcon} href="/topics" />
+          <DashboardGridIcon title="FORUMS" Icon={ForumIcon} href="/forums" />
+          <DashboardGridIcon title="PRIVATE MESSAGING" Icon={MessageIcon} href="/messages" />
+          <DashboardGridIcon title="PROFILE / SETTINGS" Icon={SettingsIcon} href="/profile" />
         </div>
 
-        <MicrosoftCopilotWidget />
+        {/* 🌟 WRAPPING THE WIDGET IN A LINK TO MAKE IT CLICKABLE 🌟 */}
+        <Link to="/copilot" className="block w-full">
+            <MicrosoftCopilotWidget />
+        </Link>
         
       </main>
       
