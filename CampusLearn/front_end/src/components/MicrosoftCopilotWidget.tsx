@@ -1,16 +1,7 @@
 // src/components/MicrosoftCopilotWidget.tsx
 
 import React from 'react';
-
-// Assuming you have an Icon component for Copilot/AI, or will use a placeholder.
-// For the real implementation, replace 'div' with your actual icon/image component.
-const AIAssistantIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    // Placeholder for a detailed AI wing/brain icon
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8 12l2 2 4-4"/>
-        <path d="M16 12s-2 1-4 1-4-1-4-1"/>
-    </svg>
-);
+import { FaRobot } from 'react-icons/fa';
 
 
 const MicrosoftCopilotWidget: React.FC = () => {
@@ -32,10 +23,9 @@ const MicrosoftCopilotWidget: React.FC = () => {
         </p>
       </div>
       
-      {/* Icon/Image container matching the prototype's aesthetic */}
-      <div className="relative h-16 w-16 md:h-20 md:w-20">
-        <AIAssistantIcon className="w-full h-full text-white" />
-        {/* This is where the image (like the wing/brain) would go */}
+      {/* Icon container */}
+      <div className="relative h-16 w-16 md:h-20 md:w-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+        <FaRobot className="w-8 h-8 md:w-10 md:h-10 text-white" />
       </div>
     </div>
   );

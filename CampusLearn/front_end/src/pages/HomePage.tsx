@@ -1,8 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FaLock, FaUsers, FaShieldAlt, FaInfoCircle } from "react-icons/fa";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import Layout from "../components/Layout";
 
 // Refactored NavCardProps to handle the different content types for Auth and About cards
 interface NavCardProps {
@@ -129,17 +128,7 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 relative overflow-hidden">
-      {/* Floating Particles Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-4 h-4 bg-purple-300 rounded-full opacity-60 animate-bounce" style={{animationDelay: '0s'}}></div>
-        <div className="absolute top-40 right-20 w-6 h-6 bg-indigo-300 rounded-full opacity-40" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-40 left-1/4 w-3 h-3 bg-purple-400 rounded-full opacity-50 animate-bounce" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-1/3 right-1/3 w-5 h-5 bg-indigo-200 rounded-full opacity-30" style={{animationDelay: '3s'}}></div>
-      </div>
-      <Header />
-
-      <main className="max-w-4xl mx-auto py-10 px-4 space-y-6">
+    <Layout variant="light">
         {/* 1. ENHANCED AUTHENTICATION CARD */}
         <div
           onClick={() => navigate("/auth")}
@@ -213,9 +202,7 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        <Footer />
-      </main>
-    </div>
+    </Layout>
   );
 };
 

@@ -122,7 +122,7 @@ const AdminPanelPage: React.FC = () => {
                 {/* Main Content Area */}
                 <div className="space-y-6">
                     
-                    {/* MANAGE ACCOUNTS (LARGE) */}
+                    {/* MANAGE ACCOUNTS */}
                     <AdminPanelButton
                         title="MANAGE STUDENT AND TUTOR ACCOUNTS"
                         subtitle="Administration & User Roles"
@@ -132,29 +132,25 @@ const AdminPanelPage: React.FC = () => {
                         size="large"
                     />
 
-                    {/* PLATFORM ANALYTICS (MEDIUM) */}
-                    <div className="w-4/5 mx-auto">
-                        <AdminPanelButton
-                            title="PLATFORM ANALYTICS"
-                            subtitle="Performance & Insights"
-                            href="/admin/analytics"
-                            IconLeft={ChartIcon}
-                            IconRight={BrainIcon}
-                            size="medium"
-                        />
-                    </div>
+                    {/* PLATFORM ANALYTICS */}
+                    <AdminPanelButton
+                        title="PLATFORM ANALYTICS"
+                        subtitle="Performance & Insights"
+                        href="/admin/analytics"
+                        IconLeft={ChartIcon}
+                        IconRight={BrainIcon}
+                        size="large"
+                    />
                     
-                    {/* MODERATE CONTENT (SMALL) */}
-                    <div className="w-2/5 mx-auto">
-                        <AdminPanelButton
-                            title="MODERATE CONTENT"
-                            subtitle=""
-                            href="/admin/moderate-content"
-                            IconLeft={ClipboardIcon}
-                            IconRight={ContentIcon}
-                            size="small"
-                        />
-                    </div>
+                    {/* MODERATE CONTENT */}
+                    <AdminPanelButton
+                        title="MODERATE CONTENT"
+                        subtitle="Content Review & Safety"
+                        href="/admin/moderate-content"
+                        IconLeft={ClipboardIcon}
+                        IconRight={ContentIcon}
+                        size="large"
+                    />
 
                 </div>
             </main>

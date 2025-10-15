@@ -15,7 +15,7 @@ import AuthForgotPasswordForm from "./pages/AuthForgotPasswordForm";
 
 // --- Dashboard Pages ---
 import StudentDashboard from "./pages/StudentDashboard";
-import TutorDashboard from "./pages/TutorDashboard";
+import TutorDashboard from "./pages/TutorDashBoard";
 import AdminDashboard from "./pages/AdminDashboard";
 
 // --- Topics Pages ---
@@ -64,6 +64,9 @@ const App: React.FC = () => {
         <Route path="/auth/forgot-password" element={<AuthForgotPasswordForm />} />
         
         {/* Dashboard Routes (Role-Gated) */}
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/tutor-dashboard" element={<TutorDashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/dashboard/student" element={<StudentDashboard />} />
         <Route path="/dashboard/tutor" element={<TutorDashboard />} />
         <Route path="/dashboard/admin" element={<AdminDashboard />} />

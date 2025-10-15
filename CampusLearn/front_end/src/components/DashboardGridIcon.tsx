@@ -18,7 +18,7 @@ const DashboardGridIcon: React.FC<DashboardGridIconProps> = ({ title, Icon, href
       // Tailwind classes for the styling
       className="
         flex flex-col items-center justify-center 
-        p-4 sm:p-6 h-36 w-full 
+        p-6 h-40 w-full 
         rounded-2xl shadow-xl transition-transform duration-300 hover:scale-[1.03]
         bg-gradient-to-br from-[#8A2BE2] to-[#4B0082] 
         text-white cursor-pointer

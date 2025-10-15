@@ -1,28 +1,12 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-// The About page image shows the contact details integrated into the main content,
-// so we'll treat them as part of this page, not using the general Footer component.
+import { FaUsers, FaRobot, FaMapMarkerAlt, FaPhone, FaEnvelope, FaTwitter, FaInstagram, FaYoutube, FaLinkedin } from "react-icons/fa";
+import Layout from "../components/Layout";
+import BackButton from "../components/BackButton";
 
 const AboutPage: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#212121" }}>
-      <Header />
-
-      {/* Changed max-w-md to max-w-4xl for wider cards on larger screens */}
-      <main className="max-w-4xl mx-auto py-4 px-4 space-y-4">
-        {/* Back Button */}
-        <div className="flex justify-start">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
-          >
-            <span className="text-lg">←</span>
-            <span className="font-medium">Home</span>
-          </button>
-        </div>
+    <Layout variant="dark" showFooter={false}>
+      <BackButton to="/" label="Back to Home" />
 
         {/* About Us & Contact Us Header Card (The large purple banner) */}
         <div
@@ -33,11 +17,7 @@ const AboutPage: React.FC = () => {
         >
           <div className="flex items-center justify-between p-4 h-40">
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-              <img
-                src="/images/about-main-graphic.png" // Placeholder for the main about graphic
-                alt="About Us Main Graphic"
-                className="max-w-full max-h-full object-contain"
-              />
+              <FaUsers className="text-purple-600 text-3xl" />
             </div>
             <div className="flex flex-col text-white text-right">
               <h2 className="text-4xl font-extrabold tracking-tight">
@@ -86,11 +66,7 @@ const AboutPage: React.FC = () => {
               </p>
             </div>
             <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center">
-              <img
-                src="/images/copilot-graphic.png" // Placeholder for Copilot graphic
-                alt="Copilot Icon"
-                className="max-w-full max-h-full object-contain"
-              />
+              <FaRobot className="text-purple-600 text-2xl" />
             </div>
           </div>
 
@@ -105,23 +81,11 @@ const AboutPage: React.FC = () => {
                 <p>Phone: 010 593 5368</p>
                 <p>Address: 138 Berg Ave, Heatherdale AH, Akasia, 0182</p>
               </div>
-              {/* Contact Icons (Address/Phone/Email images) */}
+              {/* Contact Icons */}
               <div className="flex gap-2 text-purple-600">
-                <img
-                  src="/images/location-icon.png"
-                  alt="Location"
-                  className="w-6 h-6"
-                />
-                <img
-                  src="/images/phone-icon.png"
-                  alt="Phone"
-                  className="w-6 h-6"
-                />
-                <img
-                  src="/images/email-icon.png"
-                  alt="Email"
-                  className="w-6 h-6"
-                />
+                <FaMapMarkerAlt className="w-6 h-6" />
+                <FaPhone className="w-6 h-6" />
+                <FaEnvelope className="w-6 h-6" />
               </div>
             </div>
           </div>
@@ -131,26 +95,10 @@ const AboutPage: React.FC = () => {
         <div className="bg-gray-800 p-4 rounded-xl shadow-lg mt-4">
           <div className="flex justify-between items-center text-white">
             <div className="flex gap-3 text-lg">
-              <img
-                src="/images/social-x.png"
-                alt="X"
-                className="w-6 h-6 hover:opacity-75 transition"
-              />
-              <img
-                src="/images/social-instagram.png"
-                alt="Instagram"
-                className="w-6 h-6 hover:opacity-75 transition"
-              />
-              <img
-                src="/images/social-youtube.png"
-                alt="YouTube"
-                className="w-6 h-6 hover:opacity-75 transition"
-              />
-              <img
-                src="/images/social-linkedin.png"
-                alt="LinkedIn"
-                className="w-6 h-6 hover:opacity-75 transition"
-              />
+              <FaTwitter className="w-6 h-6 hover:opacity-75 transition cursor-pointer" />
+              <FaInstagram className="w-6 h-6 hover:opacity-75 transition cursor-pointer" />
+              <FaYoutube className="w-6 h-6 hover:opacity-75 transition cursor-pointer" />
+              <FaLinkedin className="w-6 h-6 hover:opacity-75 transition cursor-pointer" />
             </div>
             <div className="text-right text-xs text-gray-300">
               <p>Email: campuslearn@belgiumcampus.ac.za</p>
@@ -158,8 +106,7 @@ const AboutPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </Layout>
   );
 };
 

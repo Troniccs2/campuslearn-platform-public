@@ -1,18 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// Added icons for feedback: FaSpinner, FaTimesCircle, FaSignInAlt, FaArrowLeft, FaEnvelope, FaLock
 import {
   FaSignInAlt,
-  FaArrowLeft,
   FaEnvelope,
   FaLock,
   FaSpinner,
   FaTimesCircle,
 } from "react-icons/fa";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import api from "../services/api"; // 👈 Your configured Axios instance
-import { createBasicAuthToken } from "../utils/authUtils"; // 👈 Your Basic Auth utility
+import Layout from "../components/Layout";
+import BackButton from "../components/BackButton";
+import api from "../services/api";
+import { createBasicAuthToken } from "../utils/authUtils";
 
 // Define the expected structure of the successful login response
 interface LoginResponse {
@@ -49,7 +47,7 @@ const AuthLoginForm: React.FC = () => {
 
       if (response.status === 200) {
         const userRole = response.data.userRole;
-        let redirectPath: string | null = null; // Initialize as null
+        let redirectPath: string | null = null;
 
         // 2. Determine the specific redirect path based on the role
         if (userRole === "STUDENT") {
@@ -60,7 +58,7 @@ const AuthLoginForm: React.FC = () => {
           redirectPath = "/admin-dashboard";
         }
 
-        // 🚀 CRITICAL: If no valid role is found, halt the process
+        // If no valid role is found, halt the process
         if (!redirectPath) {
           throw new Error(
             "Login failed: User role not provided or invalid. Please contact support."
@@ -78,13 +76,12 @@ const AuthLoginForm: React.FC = () => {
         setPassword("");
 
         // Redirect after a short delay
-        const finalRedirectPath = redirectPath; // Use the determined valid path
         setTimeout(() => {
-          navigate(finalRedirectPath);
+          navigate(redirectPath);
         }, 1500);
       }
     } catch (err: any) {
-      // Handle authentication failure or the new role-check error
+      // Handle authentication failure
       const errorMessage =
         err.message ||
         err.response?.data?.message ||
@@ -96,33 +93,14 @@ const AuthLoginForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-indigo-100 flex flex-col relative overflow-hidden">
-      {/* Floating elements (Design unchanged) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-32 h-32 bg-purple-200 rounded-full opacity-30"></div>
-        <div
-          className="absolute bottom-40 left-10 w-24 h-24 bg-indigo-200 rounded-full opacity-40 animate-bounce"
-          style={{ animationDelay: "2s" }}
-        ></div>
+    <Layout variant="light">
+      {/* TOP NAVIGATION BLOCK */}
+      <div className="space-y-4 mb-10 md:mb-16">
+        <div className="text-sm text-gray-500">
+          Home/Authentication/LoginPortal
+        </div>
+        <BackButton to="/auth" label="Back to Authentication" variant="light" />
       </div>
-      <Header />
-
-      <main className="w-full py-8 px-4 flex-grow">
-        <div className="max-w-6xl mx-auto w-full">
-          {/* TOP NAVIGATION BLOCK (Design unchanged) */}
-          <div className="space-y-4 mb-10 md:mb-16">
-            <div className="text-sm text-gray-500">
-              Home/Authentication/LoginPortal
-            </div>
-
-            <button
-              onClick={() => navigate("/auth")}
-              className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium"
-            >
-              <FaArrowLeft className="text-lg" />
-              <span>Back to Authentication</span>
-            </button>
-          </div>
 
           {/* FORM CONTAINER */}
           <div className="flex justify-center w-full">
@@ -213,12 +191,8 @@ const AuthLoginForm: React.FC = () => {
                 </span>
               </button>
             </form>
-          </div>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </Layout>
   );
 };
 

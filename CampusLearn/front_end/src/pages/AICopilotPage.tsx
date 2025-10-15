@@ -2,24 +2,11 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import ForumPostCard from '../components/ForumPostCard'; // Reusing for conversation structure
+import { FaExclamationTriangle } from 'react-icons/fa';
+import Layout from '../components/Layout';
+import BackButton from '../components/BackButton';
+import ForumPostCard from '../components/ForumPostCard';
 import CopilotHeaderBanner from '../components/CopilotHeaderBanner';
-
-// Reusing FaArrowLeft from previous components
-const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-);
-// Placeholder for Escalate Button
-const EscalateIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <path d="M16 13l-4-4-4 4"/>
-        <path d="M12 10v7"/>
-    </svg>
-);
 
 
 // ----------------------------------------------------------------------
@@ -108,36 +95,18 @@ const AICopilotPage: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 relative overflow-hidden">
-      {/* Background elements (consistent) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-        <div className="absolute top-3/4 right-1/4 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
+    <Layout variant="dark">
+      {/* Back to Dashboard and Escalate buttons */}
+      <div className="flex justify-between items-center mb-6">
+        <BackButton label="< Dashboard" />
+        <button
+          onClick={handleEscalate}
+          className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors shadow-lg"
+        >
+          <FaExclamationTriangle className="w-5 h-5" />
+          <span className="text-sm font-semibold uppercase">Escalate to Tutor</span>
+        </button>
       </div>
-      
-      <Header />
-
-      <main className="max-w-4xl mx-auto py-4 px-4 space-y-4 relative z-10">
-        
-        {/* Back to Dashboard Link (Corrected per request) */}
-        <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={() => navigate('/dashboard/student')} // Navigate to Student Dashboard
-            className="flex items-center gap-3 px-6 py-3 bg-white bg-opacity-20 backdrop-blur-md text-white rounded-xl hover:bg-opacity-30 transition-all duration-300 shadow-lg font-medium border border-white border-opacity-30"
-          >
-            <FaArrowLeft className="w-4 h-4" />
-            <span>&lt; DashBoard</span>
-          </button>
-
-          {/* Escalate to Tutor Button */}
-          <button
-            onClick={handleEscalate}
-            className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors shadow-lg"
-          >
-            <EscalateIcon className="w-5 h-5" />
-            <span className="text-sm font-semibold uppercase">Escalate to Tutor</span>
-          </button>
-        </div>
 
         <h1 className="text-4xl font-extrabold text-white mb-8 drop-shadow-lg">AI Copilot</h1>
         
@@ -181,11 +150,7 @@ const AICopilotPage: React.FC = () => {
           </form>
 
         </div>
-        
-      </main>
-      
-      <Footer />
-    </div>
+    </Layout>
   );
 };
 

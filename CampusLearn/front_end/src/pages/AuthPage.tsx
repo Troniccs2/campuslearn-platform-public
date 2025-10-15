@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FaSignInAlt, FaUserPlus, FaKey, FaArrowLeft } from "react-icons/fa";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { FaSignInAlt, FaUserPlus, FaKey } from "react-icons/fa";
+import Layout from "../components/Layout";
+import BackButton from "../components/BackButton";
 
 // Enhanced reusable card for Auth options with icons
 interface AuthCardProps {
@@ -65,26 +65,8 @@ const AuthPage: React.FC = () => {
   const handleForgotClick = () => navigate("/auth/forgot-password");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-        <div className="absolute top-3/4 right-1/4 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-      </div>
-      <Header />
-
-      <main className="max-w-4xl mx-auto py-4 px-4 space-y-6">
-        {/* Enhanced Back Button with glassmorphism */}
-        <div className="flex justify-start relative z-10">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-3 px-8 py-4 bg-white bg-opacity-20 backdrop-blur-md text-white rounded-2xl hover:bg-opacity-30 transition-all duration-500 shadow-2xl hover:shadow-purple-500/25 hover:scale-110 font-medium border border-white border-opacity-30"
-          >
-            <FaArrowLeft className="text-lg" />
-            <span>Back to Home</span>
-          </button>
-        </div>
+    <Layout variant="dark">
+      <BackButton to="/" label="Back to Home" />
 
         {/* Enhanced Login Card */}
         <AuthCard
@@ -113,9 +95,7 @@ const AuthPage: React.FC = () => {
           gradient="linear-gradient(135deg, #8b5cf6 0%, #c084fc 100%)"
         />
 
-        <Footer />
-      </main>
-    </div>
+    </Layout>
   );
 };
 

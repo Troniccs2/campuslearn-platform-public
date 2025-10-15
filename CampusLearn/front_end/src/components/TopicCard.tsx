@@ -1,6 +1,7 @@
 // src/components/TopicCard.tsx
 
 import React from 'react';
+import { FaGraduationCap } from 'react-icons/fa';
 
 interface TopicCardProps {
   topicName: string;
@@ -21,10 +22,9 @@ const TopicCard: React.FC<TopicCardProps> = ({ topicName, author, lastUpdated, h
         backdrop-blur-sm
       "
     >
-      {/* Placeholder for the Campus Learn logo/icon */}
+      {/* Campus Learn icon */}
       <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex-shrink-0 flex items-center justify-center mr-4">
-        {/* You can replace this with your actual logo img or SVG */}
-        <span className="text-sm font-bold text-white opacity-80">CL</span> 
+        <FaGraduationCap className="text-white text-lg" />
       </div>
       <div>
         <h3 className="text-xl font-semibold">{topicName}</h3>
