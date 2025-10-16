@@ -5,22 +5,17 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-// Optional: Add Lombok annotations back if you were using them
-// import lombok.AllArgsConstructor;
-// import lombok.Data;
-// import lombok.NoArgsConstructor;
-// @Data
-// @AllArgsConstructor
-// @NoArgsConstructor 
 
 @Entity
 @Table(name = "users")
@@ -33,16 +28,20 @@ public class User implements UserDetails {
     private String firstName;
     private String lastName;
     
-    //@Column(unique = true, nullable = false)
-    private String email; // <-- Primary login field
+    private String email; 
     
-    @Column(nullable = false) // Added nullable=false for the password field
+    @Column(nullable = false) 
     private String password; 
     
     // Fields for Forgot Password
     private String resetToken;             
     private LocalDateTime tokenExpiryDate; 
 
+    // 🚀 ADDED: Field to store the user's role
+    @Enumerated(EnumType.STRING) // Saves the Enum name ("STUDENT", "TUTOR", "ADMIN") as a string
+    @Column(nullable = false)
+    private Role role; 
+    
     // Manual Constructors
     public User() {}
 
@@ -62,18 +61,22 @@ public class User implements UserDetails {
     public LocalDateTime getTokenExpiryDate() { return tokenExpiryDate; }
     public void setTokenExpiryDate(LocalDateTime tokenExpiryDate) { this.tokenExpiryDate = tokenExpiryDate; }
     
-    // --- UserDetails Implementation (The Crucial Fix) ---
+    // 🚀 ADDED: Getter and Setter for Role
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
     
-    /**
-     * FIX: Use email as the principal username for authentication.
-     * Your UserDetailsService must now use userRepository.findByEmail(email).
-     */
+    // --- UserDetails Implementation (Updated for Role) ---
+    @Override 
+    public Collection<? extends GrantedAuthority> getAuthorities() { 
+        // Grants the user their single Role authority
+        return List.of(new SimpleGrantedAuthority(role.getAuthority()));
+    } 
+
     @Override 
     public String getUsername() { 
         return email; 
     } 
 
-    @Override public Collection<? extends GrantedAuthority> getAuthorities() { return List.of(); } 
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
