@@ -68,10 +68,11 @@ const CreateTopicPage: React.FC = () => {
       const topicData = {
         topicName: moduleCode.trim().toUpperCase(), // Send moduleCode as topicName
         title: topicTitle.trim(),
+        content: topicInfo.trim(),
       };
 
       // 3. Make API call to POST the new topic
-      await api.post("/api/topics", topicData);
+      await api.post("/topics", topicData);
 
       // 4. Redirect on success
       navigate("/topics");

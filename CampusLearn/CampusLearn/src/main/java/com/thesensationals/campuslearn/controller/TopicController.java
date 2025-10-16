@@ -2,11 +2,15 @@ package com.thesensationals.campuslearn.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.thesensationals.campuslearn.dto.TopicRequest; // This will now resolve
 import com.thesensationals.campuslearn.dto.TopicResponse;
 import com.thesensationals.campuslearn.service.TopicService;
 
@@ -20,16 +24,17 @@ public class TopicController {
         this.topicService = topicService;
     }
 
-    /**
-     * Endpoint to list all topics for the TopicsPage component.
-     * Accessible by ALL authenticated users.
-     * GET /api/topics
-     */
     @GetMapping
     public ResponseEntity<List<TopicResponse>> getAllTopics() {
         List<TopicResponse> topics = topicService.getAllTopics();
         return ResponseEntity.ok(topics);
     }
 
-    // TODO: You will add a @PostMapping here later for creating a new topic.
+    @PostMapping
+    public ResponseEntity<TopicResponse> createTopic(@RequestBody TopicRequest request) {
+        // You will need to implement topicService.createTopic(request)
+        TopicResponse newTopic = topicService.createTopic(request);
+        
+        return new ResponseEntity<>(newTopic, HttpStatus.CREATED);
+    }
 }

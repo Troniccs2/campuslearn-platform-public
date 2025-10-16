@@ -1,25 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom"; // Need Link for the empty state button
+import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
-import BackButton from "../components/BackButton";
+// import BackButton from "../components/BackButton"; // 🛑 REMOVED
 import TopicCard from "../components/TopicCard";
 import CreateNewTopicBanner from "../components/CreateNewTopicBanner";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
-// Define the structure for a topic response from the backend
+// Placeholder Icon for the Back Link
+const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    {...props}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M19 12H5" />
+    <path d="M12 19l-7-7 7-7" />
+  </svg>
+);
+
 interface Topic {
   id: number;
-  topicName: string; // e.g., SEN381
-  title: string; // e.g., Software Engineering
-  authorName: string; // The tutor who created it
-  lastUpdated: string; // The timestamp
+  topicName: string;
+  title: string;
+  authorName: string;
+  lastUpdated: string;
 }
 
 const TopicsPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const userRole = user?.role;
-  const isCreator = userRole === "TUTOR" || userRole === "ADMIN";
+
+  const isCreator =
+    user &&
+    (user.role.toUpperCase() === "TUTOR" ||
+      user.role.toUpperCase() === "ADMIN");
 
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +59,6 @@ const TopicsPage: React.FC = () => {
 
   const dashboardPath = getDashboardPath(userRole);
 
-  // --- Data Fetching Logic (Unchanged) ---
   useEffect(() => {
     if (!isAuthenticated) {
       setIsLoading(false);
@@ -49,10 +67,10 @@ const TopicsPage: React.FC = () => {
 
     const fetchTopics = async () => {
       try {
+        // NOTE: Endpoint is already correct here: /topics
         const response = await api.get<Topic[]>("/topics");
         setTopics(response.data);
       } catch (err) {
-        console.error("Failed to fetch topics:", err);
         setError(
           "Could not load topics. Please ensure the backend is running and you are logged in."
         );
@@ -64,7 +82,6 @@ const TopicsPage: React.FC = () => {
     fetchTopics();
   }, [isAuthenticated]);
 
-  // --- Conditional Rendering for Loading/Error States (Unchanged) ---
   if (isLoading) {
     return (
       <Layout variant="dark">
@@ -81,28 +98,32 @@ const TopicsPage: React.FC = () => {
     );
   }
 
-  // --- RENDERING TOPIC LIST OR EMPTY STATE ---
   return (
     <Layout variant="dark">
-      <BackButton label="< Dashboard" href={dashboardPath} />
+      {/* 🛠️ FIX: Replaced BackButton with inline Link to ensure the correct path is used */}
+      <div className="flex justify-start mb-6">
+        <Link
+          to={dashboardPath}
+          className="flex items-center gap-3 px-6 py-3 bg-white bg-opacity-20 backdrop-blur-md text-white rounded-xl hover:bg-opacity-30 transition-all duration-300 shadow-lg font-medium border border-white border-opacity-30"
+        >
+          <FaArrowLeft className="w-4 h-4" />
+          <span>&lt; Dashboard</span>
+        </Link>
+      </div>
 
       <h1 className="text-4xl font-extrabold text-white mb-8 drop-shadow-lg">
         Browse Topics
       </h1>
 
-      {/* Renders the static banner at the top, visible only to creators */}
       {isCreator && <CreateNewTopicBanner href="/topics/create" />}
 
-      {/* *** START OF EMPTY STATE LOGIC FIX *** */}
       {topics.length === 0 ? (
-        // Scenario: NO TOPICS FOUND
         <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-10 shadow-xl border border-purple-800 border-opacity-50 text-center">
           <p className="text-gray-200 text-2xl font-semibold mb-4">
             No topics found.
           </p>
 
           {isCreator ? (
-            // Creator: Show a prominent button to create the first topic
             <>
               <p className="text-gray-400 text-lg mb-6">
                 Be the first to create a topic and start a discussion!
@@ -115,7 +136,6 @@ const TopicsPage: React.FC = () => {
               </Link>
             </>
           ) : (
-            // Non-Creator: Simple empty message
             <p className="text-gray-400 text-lg">
               Check back soon! Tutors and Admins have not created any topics
               yet.
@@ -123,7 +143,6 @@ const TopicsPage: React.FC = () => {
           )}
         </div>
       ) : (
-        // Scenario: TOPICS EXIST (Original rendering logic)
         <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50">
           {topics.map((topic) => (
             <TopicCard

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// Added icons for feedback: FaSpinner, FaTimesCircle, FaSignInAlt, FaArrowLeft, FaEnvelope, FaLock
+import type { User } from "../utils/authUtils";
+import { useAuth } from "../context/AuthContext";
+import { createBasicAuthToken } from "../utils/authUtils";
 import {
   FaSignInAlt,
   FaArrowLeft,
@@ -11,29 +13,24 @@ import {
 } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import api from "../services/api"; // 👈 Your configured Axios instance
-import { createBasicAuthToken } from "../utils/authUtils"; // 👈 Your Basic Auth utility
+import api from "../services/api";
 
-// Define the expected structure of the successful login response
 interface LoginResponse {
   message: string;
-  // Role is now explicitly required for a successful flow
-  userRole: "STUDENT" | "TUTOR" | "ADMIN";
+  userRole: string;
 }
 
 const AuthLoginForm: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  // State for Form Inputs
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  // State for UI Feedback
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  // Submission Handler
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -41,50 +38,57 @@ const AuthLoginForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 1. Send credentials to the public login endpoint
       const response = await api.post<LoginResponse>("/auth/login", {
         email,
         password,
       });
 
       if (response.status === 200) {
-        const userRole = response.data.userRole;
-        let redirectPath: string | null = null; // Initialize as null
+        const receivedRole = response.data.userRole;
 
-        // 2. Determine the specific redirect path based on the role
-        if (userRole === "STUDENT") {
+        if (!receivedRole) {
+          throw new Error(
+            "Login failed: User role not provided by the server."
+          );
+        }
+
+        const userData: User = {
+          email: email,
+          firstName: "",
+          role: receivedRole.toUpperCase(),
+        };
+
+        const token = createBasicAuthToken(email, password);
+
+        login(userData, token);
+
+        let redirectPath: string | null = null;
+        const normalizedRole = userData.role;
+
+        if (normalizedRole === "STUDENT") {
           redirectPath = "/student-dashboard";
-        } else if (userRole === "TUTOR") {
+        } else if (normalizedRole === "TUTOR") {
           redirectPath = "/tutor-dashboard";
-        } else if (userRole === "ADMIN") {
+        } else if (normalizedRole === "ADMIN") {
           redirectPath = "/admin-dashboard";
         }
 
-        // 🚀 CRITICAL: If no valid role is found, halt the process (No fallback)
         if (!redirectPath) {
           throw new Error(
             "Login failed: User role not provided or invalid. Please contact support."
           );
         }
 
-        // 3. SUCCESS: Store token and role, then redirect
-        const token = createBasicAuthToken(email, password);
-        localStorage.setItem("basicAuthToken", token);
-        localStorage.setItem("userRole", userRole); // Store role for component checks
-
         setSuccessMessage(
           response.data.message || "Login successful! Redirecting..."
         );
         setPassword("");
 
-        // Redirect after a short delay
-        const finalRedirectPath = redirectPath; // Use the determined valid path
         setTimeout(() => {
-          navigate(finalRedirectPath);
+          navigate(redirectPath!);
         }, 1500);
       }
     } catch (err: any) {
-      // Handle authentication failure or the new role-check error
       const errorMessage =
         err.message ||
         err.response?.data?.message ||
@@ -97,7 +101,6 @@ const AuthLoginForm: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-indigo-100 flex flex-col relative overflow-hidden">
-      {/* Floating elements (Design unchanged) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 right-20 w-32 h-32 bg-purple-200 rounded-full opacity-30"></div>
         <div
@@ -109,7 +112,6 @@ const AuthLoginForm: React.FC = () => {
 
       <main className="w-full py-8 px-4 flex-grow">
         <div className="max-w-6xl mx-auto w-full">
-          {/* TOP NAVIGATION BLOCK (Design unchanged) */}
           <div className="space-y-4 mb-10 md:mb-16">
             <div className="text-sm text-gray-500">
               Home/Authentication/LoginPortal
@@ -124,7 +126,6 @@ const AuthLoginForm: React.FC = () => {
             </button>
           </div>
 
-          {/* FORM CONTAINER */}
           <div className="flex justify-center w-full">
             <form
               onSubmit={handleLogin}
@@ -134,10 +135,8 @@ const AuthLoginForm: React.FC = () => {
                 width: "100%",
               }}
             >
-              {/* Glassmorphism overlay (Design unchanged) */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-indigo-50 opacity-50 rounded-3xl"></div>
 
-              {/* Enhanced Header (Design unchanged) */}
               <div className="flex items-center gap-4 mb-6 relative z-10">
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center shadow-2xl">
                   <FaSignInAlt className="text-white text-3xl" />
@@ -152,7 +151,6 @@ const AuthLoginForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* MESSAGES */}
               {error && (
                 <div className="w-full p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center gap-2 relative z-10">
                   <FaTimesCircle />
@@ -167,7 +165,6 @@ const AuthLoginForm: React.FC = () => {
               )}
 
               <div className="space-y-6 w-full relative z-10">
-                {/* Enhanced Email Input */}
                 <div className="relative">
                   <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-600" />
                   <input
@@ -179,7 +176,6 @@ const AuthLoginForm: React.FC = () => {
                     className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-700 bg-white shadow-md transition-all duration-300"
                   />
                 </div>
-                {/* Enhanced Password Input */}
                 <div className="relative">
                   <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-600" />
                   <input
@@ -193,7 +189,6 @@ const AuthLoginForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* Enhanced Submit Button */}
               <button
                 type="submit"
                 disabled={isLoading}

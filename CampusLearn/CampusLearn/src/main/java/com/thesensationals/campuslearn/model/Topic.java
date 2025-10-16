@@ -21,12 +21,14 @@ public class Topic {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String topicName; // e.g., "SEN381"
+    private String topicName;
 
     @Column(nullable = false)
-    private String title; // e.g., "Software Engineering"
+    private String title;
 
-    // Many-to-One relationship with the User who created the topic (the author)
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
@@ -34,12 +36,10 @@ public class Topic {
     @Column(nullable = false)
     private LocalDateTime lastUpdated;
 
-    // Default constructor for JPA
     public Topic() {
         this.lastUpdated = LocalDateTime.now();
     }
 
-    // Constructor for creation
     public Topic(String topicName, String title, User author) {
         this.topicName = topicName;
         this.title = title;
@@ -47,9 +47,6 @@ public class Topic {
         this.lastUpdated = LocalDateTime.now();
     }
 
-    // --- Getters and Setters (Omitted for brevity, but required) ---
-    // You should use Lombok if possible, or generate these in your IDE (IntelliJ/VS Code).
-    
     public Long getId() {
         return id;
     }
@@ -65,13 +62,21 @@ public class Topic {
     public void setTopicName(String topicName) {
         this.topicName = topicName;
     }
-    
+
     public String getTitle() {
         return title;
     }
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public User getAuthor() {
