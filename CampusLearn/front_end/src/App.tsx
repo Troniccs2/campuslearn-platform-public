@@ -20,7 +20,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 // --- Topics Pages ---
 import TopicsPage from "./pages/TopicsPage";
-import TopicDetailsPage from "./pages/TopicDetailsPage"; 
+import TopicDetailsPage from "./pages/TopicDetailsPage";
 import CreateTopicPage from "./pages/CreateTopicPage";
 import ViewLearningMaterialsPage from "./pages/ViewLearningMaterialsPage";
 
@@ -61,8 +61,11 @@ const App: React.FC = () => {
         {/* Authentication Form Routes */}
         <Route path="/auth/login" element={<AuthLoginForm />} />
         <Route path="/auth/register" element={<AuthRegistrationForm />} />
-        <Route path="/auth/forgot-password" element={<AuthForgotPasswordForm />} />
-        
+        <Route
+          path="/auth/forgot-password"
+          element={<AuthForgotPasswordForm />}
+        />
+
         {/* Dashboard Routes (Role-Gated) */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/tutor-dashboard" element={<TutorDashboard />} />
@@ -77,17 +80,26 @@ const App: React.FC = () => {
         {/* We will use ':topicId' here for clarity and consistency with the component's internal logic. */}
         <Route path="/topics/:topicId" element={<TopicDetailsPage />} />
         <Route path="/topics/create" element={<CreateTopicPage />} />
-        <Route path="/topics/:topicId/materials" element={<ViewLearningMaterialsPage />} />
+        <Route
+          path="/topics/:topicId/materials"
+          element={<ViewLearningMaterialsPage />}
+        />
 
         {/* Forum Routes */}
         <Route path="/forums" element={<ForumsPage />} />
         <Route path="/forums/:categoryId" element={<ForumThreadListPage />} />
-        <Route path="/forums/:categoryId/:threadId" element={<ForumThreadViewPage />} />
+        <Route
+          path="/forums/:categoryId/:threadId"
+          element={<ForumThreadViewPage />}
+        />
 
         {/* Private Messaging Route */}
         <Route path="/messages" element={<PrivateMessagingPage />} />
         <Route path="/messages/compose" element={<SearchComposePage />} />
-        <Route path="/messages/:conversationId" element={<ConversationViewPage />} />
+        <Route
+          path="/messages/:conversationId"
+          element={<ConversationViewPage />}
+        />
 
         {/* Profile Settings Route */}
         <Route path="/profile" element={<ProfileSettingsPage />} />
@@ -97,12 +109,17 @@ const App: React.FC = () => {
         <Route path="/copilot" element={<AICopilotPage />} />
 
         {/* Admin Panel Route*/}
-        <Route path="/admin-panel" element={<AdminPanelPage/>} />
-        <Route path="/admin/manage-accounts" element={<ManageAccountsPage/>} />
-        <Route path="/admin/manage-user/:accountId" element={<AccountManagementViewPage/>} />
-        <Route path="/admin/analytics" element={<PlatformAnalyticsPage/>} />
-        <Route path="/admin/moderate-content" element={<ContentModerationPage/>} />
-
+        <Route path="/admin-panel" element={<AdminPanelPage />} />
+        <Route path="/admin/manage-accounts" element={<ManageAccountsPage />} />
+        <Route
+          path="/admin/manage-user/:accountId"
+          element={<AccountManagementViewPage />}
+        />
+        <Route path="/admin/analytics" element={<PlatformAnalyticsPage />} />
+        <Route
+          path="/admin/moderate-content"
+          element={<ContentModerationPage />}
+        />
       </Routes>
     </Router>
   );

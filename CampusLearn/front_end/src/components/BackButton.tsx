@@ -1,17 +1,18 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 interface BackButtonProps {
   to?: string;
+  href?: string;
   label?: string;
-  variant?: 'light' | 'dark';
+  variant?: "light" | "dark";
 }
 
-const BackButton: React.FC<BackButtonProps> = ({ 
-  to, 
-  label = 'Back', 
-  variant = 'dark' 
+const BackButton: React.FC<BackButtonProps> = ({
+  to,
+  label = "Back",
+  variant = "dark",
 }) => {
   const navigate = useNavigate();
 
@@ -23,9 +24,10 @@ const BackButton: React.FC<BackButtonProps> = ({
     }
   };
 
-  const buttonClass = variant === 'light'
-    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700'
-    : 'bg-white bg-opacity-20 backdrop-blur-md text-white hover:bg-opacity-30 border border-white border-opacity-30';
+  const buttonClass =
+    variant === "light"
+      ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700"
+      : "bg-white bg-opacity-20 backdrop-blur-md text-white hover:bg-opacity-30 border border-white border-opacity-30";
 
   return (
     <div className="flex justify-start">

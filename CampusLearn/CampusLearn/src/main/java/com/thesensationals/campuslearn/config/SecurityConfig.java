@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order; 
+import org.springframework.http.HttpMethod; // <--- NEW IMPORT
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer; 
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -16,7 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-// --------------------------------
 
 @Configuration
 @EnableWebSecurity(debug = true) 
@@ -67,8 +67,18 @@ public class SecurityConfig {
             // Disable CSRF for stateless API
             .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(auth -> auth
-                // Allow public access to all authentication endpoints (e.g., /api/auth/register, /api/auth/login)
+                // Public Endpoints (No Authentication Required)
                 .requestMatchers("/api/auth/**").permitAll() 
+                
+                // ------------------ NEW TOPIC ENDPOINT SECURITY ------------------
+                // 1. GET /api/topics: Accessible by all authenticated users (STUDENT, TUTOR, ADMIN)
+                .requestMatchers(HttpMethod.GET, "/api/topics").authenticated()
+                
+                // 2. POST /api/topics: Only accessible by TUTOR and ADMIN roles for creation
+                .requestMatchers(HttpMethod.POST, "/api/topics").hasAnyRole("TUTOR", "ADMIN")
+                
+                // -----------------------------------------------------------------
+                
                 // Require authentication for all other requests
                 .anyRequest().authenticated()
             )

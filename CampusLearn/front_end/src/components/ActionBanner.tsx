@@ -1,17 +1,23 @@
 // src/components/ActionBanner.tsx
 
-import React from 'react';
+import React from "react";
 
 interface ActionBannerProps {
   title: string;
   href: string;
+  className?: string;
   gradient: string; // e.g., 'from-pink-500 to-red-500'
   Icon: React.ElementType;
 }
 
-const ActionBanner: React.FC<ActionBannerProps> = ({ title, href, gradient, Icon }) => {
+const ActionBanner: React.FC<ActionBannerProps> = ({
+  title,
+  href,
+  gradient,
+  Icon,
+}) => {
   return (
-    <a 
+    <a
       href={href}
       className={`
         flex items-center justify-center p-4 my-4 
