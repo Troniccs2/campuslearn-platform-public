@@ -1,10 +1,12 @@
+// src/components/BackButton.tsx
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 
 interface BackButtonProps {
-  to?: string;
-  href?: string;
+  to?: string; // The specific path to navigate to (e.g., "/")
+  href?: string; // (Not used by handleClick, but kept in the interface)
   label?: string;
   variant?: "light" | "dark";
 }
@@ -18,8 +20,10 @@ const BackButton: React.FC<BackButtonProps> = ({
 
   const handleClick = () => {
     if (to) {
+      // If a 'to' path is provided, navigate directly to it (e.g., Dashboard)
       navigate(to);
     } else {
+      // Otherwise, go back one step in the browser history (default behavior)
       navigate(-1);
     }
   };
