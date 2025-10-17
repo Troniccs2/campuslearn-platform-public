@@ -5,12 +5,13 @@ import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order; 
-import org.springframework.http.HttpMethod; // <--- NEW IMPORT
+import org.springframework.http.HttpMethod; 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer; 
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -65,13 +66,17 @@ public class SecurityConfig {
             // 🏆 CORS FIX: Apply the custom CORS configuration source
             .cors(Customizer.withDefaults())
             // Disable CSRF for stateless API
-            .csrf(csrf -> csrf.disable()) 
+            .csrf(AbstractHttpConfigurer::disable) // Use standard Spring Boot 3 syntax
             .authorizeHttpRequests(auth -> auth
+                
                 // Public Endpoints (No Authentication Required)
                 .requestMatchers("/api/auth/**").permitAll() 
                 
-                // ------------------ NEW TOPIC ENDPOINT SECURITY ------------------
-                // 1. GET /api/topics: Accessible by all authenticated users (STUDENT, TUTOR, ADMIN)
+                // 🚀 FIX: Allow public access to the thread view endpoint
+                .requestMatchers(HttpMethod.GET, "/api/forums/**").permitAll()
+                
+                // ------------------ TOPIC ENDPOINT SECURITY ------------------
+                // 1. GET /api/topics: Accessible by all authenticated users
                 .requestMatchers(HttpMethod.GET, "/api/topics").authenticated()
                 
                 // 2. POST /api/topics: Only accessible by TUTOR and ADMIN roles for creation

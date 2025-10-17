@@ -1,15 +1,15 @@
 package com.thesensationals.campuslearn.model;
 
+import java.time.Instant;
+
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-
-// --- Lombok Annotations ---
-import lombok.Getter;           // Automatically creates all getter methods
-import lombok.Setter;           // Automatically creates all setter methods
-import lombok.NoArgsConstructor;  // Creates a constructor with no arguments
-import lombok.AllArgsConstructor; // Creates a constructor with all arguments
+import jakarta.persistence.Id; // <-- NEW IMPORT
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter 
@@ -25,8 +25,5 @@ public class ForumCategory {
     private String name;        // e.g., "Workshops"
     private String slug;        // e.g., "workshops"
     private String lastAuthor;
-    private String lastUpdated;
-
-    // The getters, setters, and constructors are now automatically generated 
-    // by Lombok, so you don't need the manual boilerplate code here.
+    private Instant lastUpdated; // <-- FIX: Changed to Instant to correctly handle date/time data
 }

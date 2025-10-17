@@ -1,32 +1,44 @@
 package com.thesensationals.campuslearn.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference; 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data; 
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Table(name = "forum_thread")
+@Data // Keep @Data for other methods, but explicitly add the missing setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ForumThread {
+
+    // ... (All existing fields: id, title, slug, authorName, postedAt, lastUpdated, forumCategory)
+    // ...
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
+    private String slug;
+    private String authorName;
+
+    private LocalDateTime postedAt; 
     
-    // We'll use a String for simplicity now, but later this should be a relationship
-    private String slug; // Used for the URL (e.g., sen381-thread)
-    private String authorName; 
-    private String lastUpdated;
-    
-    // Link the thread back to its parent category
-    // 🚀 FIX: Changed to EAGER fetch to resolve the Jackson serialization crash (InvalidDefinitionException: No serializer found for class org.hibernate.proxy...)
-    @ManyToOne(fetch = FetchType.EAGER)
+    private LocalDateTime lastUpdated;
+
+    @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "category_id", nullable = false)
-    private ForumCategory forumCategory; 
+    private ForumCategory forumCategory;
+    
+    @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ForumPost> posts = new java.util.ArrayList<>();
+
+    // 🛑 MANUAL FIX: Add setter explicitly to resolve 'cannot find symbol' error in Controller 🛑
+    public void setLastUpdated(LocalDateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
 }
