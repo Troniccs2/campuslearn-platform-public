@@ -3,11 +3,13 @@ package com.thesensationals.campuslearn;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan; // <-- IMPORT ADDED
 import org.springframework.context.annotation.Bean;
 
 import com.thesensationals.campuslearn.service.AuthenticationService;
 
 @SpringBootApplication
+@EntityScan(basePackages = "com.thesensationals.campuslearn.model") // <-- ANNOTATION ADDED
 public class CampuslearnApplication {
 
     public static void main(String[] args) {

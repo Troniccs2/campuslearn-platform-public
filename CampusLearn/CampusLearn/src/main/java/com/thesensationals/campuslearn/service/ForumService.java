@@ -1,37 +1,45 @@
+// src/main/java/com/thesensationals/campuslearn/service/ForumService.java
+
 package com.thesensationals.campuslearn.service;
 
 import java.util.List;
-import java.util.Optional; // Needed for Optional usage
+import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.thesensationals.campuslearn.model.ForumCategory;
+import com.thesensationals.campuslearn.model.ForumThread;
 import com.thesensationals.campuslearn.repository.ForumCategoryRepository;
+import com.thesensationals.campuslearn.repository.ForumThreadRepository;
 
 @Service
 public class ForumService {
 
-    // Using final and constructor injection is preferred over @Autowired on the field
+    // 1. Final fields for repositories
     private final ForumCategoryRepository categoryRepository;
-    
-    // Spring Boot automatically handles the wiring (injection) here
-    public ForumService(ForumCategoryRepository categoryRepository) {
+    private final ForumThreadRepository threadRepository;
+
+    // 2. Constructor Injection (preferred over @Autowired field injection)
+    public ForumService(ForumCategoryRepository categoryRepository, ForumThreadRepository threadRepository) {
         this.categoryRepository = categoryRepository;
+        this.threadRepository = threadRepository;
     }
 
-    // 1. Fetch all categories for the main ForumsPage
+    // --- Category Methods (Used by ForumsPage.tsx) ---
+
     public List<ForumCategory> getAllCategories() {
-        // Data will be loaded from PostgreSQL via data.sql/JPA
         return categoryRepository.findAll();
     }
-    
-    // 2. Fetch a single category by slug (for navigation/ForumListPage)
-    public ForumCategory getCategoryBySlug(String slug) {
-        return categoryRepository.findBySlug(slug)
-            .orElseThrow(() -> new RuntimeException("Category not found: " + slug));
+
+    public Optional<ForumCategory> getCategoryBySlug(String slug) {
+        // Renamed method to return Optional for better error handling in the controller
+        return categoryRepository.findBySlug(slug);
     }
     
-    // NOTE: The initializeCategories() method has been removed 
-    // to prevent hardcoding data and fix the constructor errors.
+    // --- Thread Methods (Used by ForumThreadListPage.tsx) ---
+
+    public List<ForumThread> getThreadsByCategorySlug(String categorySlug) {
+        // 🚀 THE FIX: Changed to the correct repository method name
+        return threadRepository.findByForumCategory_Slug(categorySlug);
+    }
 }
