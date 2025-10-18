@@ -72,7 +72,10 @@ public class SecurityConfig {
                 // Public Endpoints (No Authentication Required)
                 .requestMatchers("/api/auth/**").permitAll() 
                 
-                // 🚀 FIX: Allow public access to the thread view endpoint
+                // 🚀 FIX: Allow public access to the forum read endpoints
+                // Explicitly permit the categories endpoint first (clear intent)
+                .requestMatchers(HttpMethod.GET, "/api/forums/categories").permitAll()
+                // Permit any other forum GET endpoints (threads, thread view, etc.)
                 .requestMatchers(HttpMethod.GET, "/api/forums/**").permitAll()
                 
                 // ------------------ TOPIC ENDPOINT SECURITY ------------------

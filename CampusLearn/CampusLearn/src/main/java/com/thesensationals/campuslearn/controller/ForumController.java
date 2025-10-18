@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.server.ResponseStatusException;
 
 // JAVA UTILITY IMPORTS
@@ -20,17 +22,23 @@ import com.thesensationals.campuslearn.model.ForumThread;
 
 import com.thesensationals.campuslearn.repository.ForumPostRepository;
 import com.thesensationals.campuslearn.repository.ForumThreadRepository;
+import com.thesensationals.campuslearn.service.ForumService;
+import com.thesensationals.campuslearn.dto.ForumCategoryDTO;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/forums")
+@CrossOrigin(origins = "http://localhost:5173") // allow the front-end dev server
 public class ForumController {
     
     private final ForumPostRepository forumPostRepository;
     private final ForumThreadRepository forumThreadRepository;
+    private final ForumService forumService;
 
-    public ForumController(ForumPostRepository forumPostRepository, ForumThreadRepository forumThreadRepository) {
+    public ForumController(ForumPostRepository forumPostRepository, ForumThreadRepository forumThreadRepository, ForumService forumService) {
         this.forumPostRepository = forumPostRepository;
         this.forumThreadRepository = forumThreadRepository;
+        this.forumService = forumService;
     }
 
     @PostMapping("/post")
@@ -63,5 +71,12 @@ public class ForumController {
 
         // 6. Return the saved post with 201 Created status
         return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
+    }
+
+    // New endpoint to expose forum categories to the front-end
+    @GetMapping("/categories")
+    public ResponseEntity<List<ForumCategoryDTO>> getAllCategories() {
+        List<ForumCategoryDTO> categories = forumService.getAllCategories();
+        return ResponseEntity.ok(categories);
     }
 }
