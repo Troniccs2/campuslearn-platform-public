@@ -52,7 +52,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <scope>provided</scope> 
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
         </dependency>
         
         <dependency>
@@ -90,29 +91,22 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok-maven-plugin</artifactId>
-                <version>1.18.20.0</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>delombok</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <addOutputDirectory>false</addOutputDirectory>
-                    <outputDirectory>${project.build.directory}/generated-sources/delombok</outputDirectory>
-                </configuration>
-            </plugin>
+            <!-- lombok-maven-plugin removed: annotation processing is handled by maven-compiler-plugin -->
             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
                 <configuration>
                     <release>${java.version}</release>
+                    <!-- Ensure Lombok runs as an annotation processor during compilation -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             
