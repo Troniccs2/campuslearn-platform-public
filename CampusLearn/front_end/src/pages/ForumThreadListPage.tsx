@@ -8,21 +8,23 @@ import TopicCard from "../components/TopicCard";
 import BrowseThreadsBanner from "../components/BrowseThreadsBanner";
 import api from "../services/api";
 import { FaArrowLeft } from "react-icons/fa";
-// Reusing FaArrowLeft...
 
-// NEW Interface for the data fetched from the backend
+// Interface for the data fetched from the backend
 interface ForumThread {
   id: number;
-  title: string; // The main display title (e.g., SEN381)
-  slug: string; // The URL part (e.g., sen381-thread)
+  title: string;
+  slug: string;
   authorName: string;
+  // FIX: Must be 'string' to match the TopicCard component's prop expectation.
   lastUpdated: string;
 }
 
 const ForumThreadListPage: React.FC = () => {
   const navigate = useNavigate();
-  // The URL parameter is the category slug (e.g., 'workshops')
-  const { categoryId: categorySlug } = useParams<{ categoryId: string }>();
+
+  // 🚀 FIX: Assume the router parameter is named 'slug'
+  // This must match the variable name used in your React Router setup (e.g., <Route path="/forums/:slug/threads" ... />)
+  const { slug: categorySlug } = useParams<{ slug: string }>();
 
   const [threads, setThreads] = useState<ForumThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,22 +33,31 @@ const ForumThreadListPage: React.FC = () => {
   // Dynamic name display
   const categoryName = categorySlug
     ? categorySlug.charAt(0).toUpperCase() +
-      categorySlug.slice(1).replace("-", " ")
+      // FIX: Use regex to replace ALL hyphens globally
+      categorySlug.slice(1).replace(/-/g, " ")
     : "Forum Category";
 
-  // NEW: Fetch threads from the backend
+  // Fetch threads from the backend
   useEffect(() => {
-    if (!categorySlug) return;
+    // 🚀 CRITICAL CHECK: Early exit if slug is missing to prevent 404
+    if (!categorySlug) {
+      setIsLoading(false);
+      // This error prevents the fetch from running with an invalid URL
+      setError("Category URL parameter is missing. Check the navigation link.");
+      return;
+    }
 
     const fetchThreads = async () => {
       try {
-        // Call the new Spring Boot endpoint: /api/forums/{categorySlug}/threads
-        const response = await api.get<ForumThread[]>(
-          `/forums/${categorySlug}/threads`
-        );
+        // Call the Spring Boot endpoint: /forums/{categorySlug}/threads
+        const url = `/forums/${categorySlug}/threads`;
+
+        const response = await api.get<ForumThread[]>(url);
+
         setThreads(response.data);
       } catch (err) {
         console.error("Failed to fetch threads:", err);
+        // Show the specific error message you want the user to see
         setError(
           "Could not load forum threads. Please ensure the backend is running and the URL is correct."
         );
@@ -61,7 +72,6 @@ const ForumThreadListPage: React.FC = () => {
   if (isLoading) {
     // Simple loading state
     return (
-      // ... (Use your Layout or minimal container)
       <div className="text-white text-center mt-20">Loading threads...</div>
     );
   }
@@ -69,7 +79,6 @@ const ForumThreadListPage: React.FC = () => {
   if (error) {
     // Simple error state
     return (
-      // ... (Use your Layout or minimal container)
       <div className="text-red-400 text-center mt-20 font-semibold">
         {error}
       </div>
@@ -78,7 +87,6 @@ const ForumThreadListPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 relative overflow-hidden">
-      {/* ... Background and Header ... */}
       <Header />
 
       <main className="max-w-4xl mx-auto py-4 px-4 space-y-6 relative z-10">

@@ -106,7 +106,7 @@ const ForumsPage: React.FC = () => {
 
   return (
     <Layout variant="dark">
-      {/* 5. FIX: Implement dynamic, role-based "Back to Dashboard" link */}
+      {/* 5. Implement dynamic, role-based "Back to Dashboard" link */}
       <div className="flex justify-start mb-6">
         <Link
           to={dashboardPath}
@@ -137,7 +137,8 @@ const ForumsPage: React.FC = () => {
               topicName={category.name} // Maps ForumCategory.name to TopicCard prop
               author={category.lastAuthor} // Maps ForumCategory.lastAuthor to TopicCard prop
               lastUpdated={category.lastUpdated}
-              href={`/forums/${category.slug}`} // Use slug for navigation
+              // CORRECTED: The link must include '/threads' to match the router definition
+              href={`/forums/${category.slug}/threads`}
             />
           ))
         )}

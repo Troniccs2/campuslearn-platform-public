@@ -76,8 +76,6 @@ const App: React.FC = () => {
 
         {/* Topics Routes */}
         <Route path="/topics" element={<TopicsPage />} />
-        {/* Note: The Route parameter is named ':topicId' in the TopicDetailsPage code, but ':id' is fine too. */}
-        {/* We will use ':topicId' here for clarity and consistency with the component's internal logic. */}
         <Route path="/topics/:topicId" element={<TopicDetailsPage />} />
         <Route path="/topics/create" element={<CreateTopicPage />} />
         <Route
@@ -85,11 +83,11 @@ const App: React.FC = () => {
           element={<ViewLearningMaterialsPage />}
         />
 
-        {/* Forum Routes */}
+        {/* Forum Routes - CRITICAL FIX: The list route MUST come before the view route */}
         <Route path="/forums" element={<ForumsPage />} />
-        <Route path="/forums/:categoryId" element={<ForumThreadListPage />} />
+        <Route path="/forums/:slug/threads" element={<ForumThreadListPage />} />
         <Route
-          path="/forums/:categoryId/:threadId"
+          path="/forums/:slug/:threadId"
           element={<ForumThreadViewPage />}
         />
 

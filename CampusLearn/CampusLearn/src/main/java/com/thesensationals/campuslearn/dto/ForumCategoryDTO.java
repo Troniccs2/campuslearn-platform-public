@@ -1,17 +1,14 @@
-// src/main/java/com/thesensationals/campuslearn/dto/ForumCategoryDTO.java
-
 package com.thesensationals.campuslearn.dto;
 
-import lombok.AllArgsConstructor;
+// We will rely on the manually defined constructors below
+// import lombok.AllArgsConstructor; // REMOVE or COMMENT OUT
+// import lombok.NoArgsConstructor;  // REMOVE or COMMENT OUT
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Lombok annotations to automatically generate methods:
+// @Getter and @Setter are kept because your service needs the setter methods (dto.setX())
 @Getter
 @Setter
-@NoArgsConstructor // Needed for Jackson serialization/deserialization
-@AllArgsConstructor // <-- CRITICAL FIX: Generates the constructor required by ForumService
 public class ForumCategoryDTO {
 
     private Long id;
@@ -20,6 +17,16 @@ public class ForumCategoryDTO {
     private String lastAuthor;
     private Long lastUpdated;
 
-    // NOTE: Lombok will generate the required constructor with all 5 fields
-    // You do not need to write it manually.
+    // FIX 1: MANUAL No-Argument Constructor (Required for Spring/Jackson and set-based conversion)
+    public ForumCategoryDTO() {
+    }
+
+    // FIX 2: MANUAL All-Argument Constructor (Required by ForumService.convertToDto logic)
+    public ForumCategoryDTO(Long id, String name, String slug, String lastAuthor, Long lastUpdated) {
+        this.id = id;
+        this.name = name;
+        this.slug = slug;
+        this.lastAuthor = lastAuthor;
+        this.lastUpdated = lastUpdated;
+    }
 }

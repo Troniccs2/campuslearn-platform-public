@@ -31,15 +31,15 @@ public class ForumService {
                 .collect(Collectors.toList());
     }
 
+    // Uses the clean constructor call (since DTO is fixed)
     private ForumCategoryDTO convertToDto(ForumCategory category) {
-        // Line 40 is here
         return new ForumCategoryDTO(
                 category.getId(),
                 category.getName(),
                 category.getSlug(),
                 category.getLastAuthor(),
-                // CRITICAL FIX: Convert Instant to Long (milliseconds since epoch) for the DTO
-                category.getLastUpdated().toEpochMilli()
+                // Convert Instant to Long (milliseconds since epoch)
+                category.getLastUpdated().toEpochMilli() 
         );
     }
     
@@ -50,6 +50,16 @@ public class ForumService {
     // --- Thread Methods ---
 
     public List<ForumThread> getThreadsByCategorySlug(String categorySlug) {
-        return threadRepository.findByForumCategory_Slug(categorySlug);
+        // 🚀 THE FINAL FIX: Switch to the explicit JPQL method
+        // to bypass Spring Data JPA's misinterpretation of the entity/view.
+        return threadRepository.findThreadsByCategorySlug(categorySlug); 
+    }
+
+    /**
+     * This method is correct and was added to fix the controller compilation error.
+     */
+    public Optional<ForumThread> getThreadBySlugs(String categorySlug, String threadSlug) {
+        // This convention-based method is correct for a single unique thread lookup.
+        return threadRepository.findByForumCategorySlugAndSlug(categorySlug, threadSlug);
     }
 }
