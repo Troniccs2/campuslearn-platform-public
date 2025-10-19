@@ -25,18 +25,28 @@ const Header: React.FC = () => {
         {/* Enhanced Navigation Links */}
         <div className="flex gap-4">
           <button
-            onClick={() => navigate("/StudentPortal")}
+            onClick={() =>
+              window.open(
+                "https://www.belgiumcampus.ac.za/portal/student_login.html",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
             className="flex items-center gap-2 px-6 py-2 border-2 border-white text-white rounded-xl text-sm font-medium bg-transparent hover:bg-white hover:text-purple-900 transition-all duration-300 hover:scale-105 shadow-lg"
             aria-label="Go to Student Portal"
             title="Student Portal"
           >
             <FaUserGraduate className="text-lg" />
-            Student Portal
+            Student
           </button>
+
+          {/* BG Connect stays a button but opens external link (Belgium Campus) */}
           <button
-            onClick={() => navigate("/bgconnect")}
+            onClick={() =>
+              window.open("https://portal.belgiumcampus.ac.za/", "_blank", "noopener,noreferrer")
+            }
             className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-700 to-indigo-700 text-white rounded-xl text-sm font-medium border-2 border-purple-600 hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 hover:scale-105 shadow-lg"
-            aria-label="Go to BG Connect"
+            aria-label="Open BG Connect (external)"
             title="BG Connect"
           >
             <FaNetworkWired className="text-lg" />
