@@ -1,13 +1,12 @@
+// src/pages/TopicsPage.tsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
-// import BackButton from "../components/BackButton"; // 🛑 REMOVED
-import TopicCard from "../components/TopicCard";
+import TopicCard from "../components/TopicCard"; // Your component
 import CreateNewTopicBanner from "../components/CreateNewTopicBanner";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
-
-// Placeholder Icon for the Back Link
+// Assuming FaArrowLeft is imported or defined
 const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -27,7 +26,7 @@ interface Topic {
   id: number;
   topicName: string;
   title: string;
-  authorName: string;
+  authorName: string; // Must match the backend DTO property
   lastUpdated: string;
 }
 
@@ -60,19 +59,14 @@ const TopicsPage: React.FC = () => {
   const dashboardPath = getDashboardPath(userRole);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setIsLoading(false);
-      return;
-    }
-
+    // FIX: Always attempt to fetch topics
     const fetchTopics = async () => {
       try {
-        // NOTE: Endpoint is already correct here: /topics
         const response = await api.get<Topic[]>("/topics");
         setTopics(response.data);
       } catch (err) {
         setError(
-          "Could not load topics. Please ensure the backend is running and you are logged in."
+          "Could not load topics. Please ensure the backend is running and reachable."
         );
       } finally {
         setIsLoading(false);
@@ -80,10 +74,11 @@ const TopicsPage: React.FC = () => {
     };
 
     fetchTopics();
-  }, [isAuthenticated]);
+  }, []);
 
   if (isLoading) {
     return (
+      // FIX: Use the 'dark' variant which you defined in Layout.tsx
       <Layout variant="dark">
         <p className="text-white text-center mt-20">Loading topics...</p>
       </Layout>
@@ -99,8 +94,9 @@ const TopicsPage: React.FC = () => {
   }
 
   return (
+    // FIX: Use the 'dark' variant
     <Layout variant="dark">
-      {/* 🛠️ FIX: Replaced BackButton with inline Link to ensure the correct path is used */}
+      {/* 🛠️ Back Link */}
       <div className="flex justify-start mb-6">
         <Link
           to={dashboardPath}
@@ -118,6 +114,7 @@ const TopicsPage: React.FC = () => {
       {isCreator && <CreateNewTopicBanner href="/topics/create" />}
 
       {topics.length === 0 ? (
+        // ... (No topics found block)
         <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-10 shadow-xl border border-purple-800 border-opacity-50 text-center">
           <p className="text-gray-200 text-2xl font-semibold mb-4">
             No topics found.
@@ -147,9 +144,11 @@ const TopicsPage: React.FC = () => {
           {topics.map((topic) => (
             <TopicCard
               key={topic.id}
-              topicName={topic.topicName}
+              // These props now correctly map to the TopicCard component you provided
+              topicName={topic.title} // Use title for display in the card
               author={topic.authorName}
               lastUpdated={topic.lastUpdated}
+              // Use topicName (the slug) for the link
               href={`/topics/${topic.topicName}`}
             />
           ))}
