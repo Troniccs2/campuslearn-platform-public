@@ -3,41 +3,33 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import TopicContentCard from "../components/TopicContentCard";
-import ResponseCard from "../components/ResponseCard";
+// import ResponseCard from "../components/ResponseCard"; // <--- REMOVED
 import ActionBanner from "../components/ActionBanner";
 import axios from "axios";
 
-// --- Interface Definitions (FIXED for Flat DTO and Null Safety) ---
+// --- Interface Definitions (SIMPLIFIED - No Responses) ---
 
 interface Author {
   id: number;
-  firstName: string | null; // Added | null for safety
-  lastName: string | null; // Added | null for safety
+  firstName: string | null;
+  lastName: string | null;
 }
 
 interface TopicDetail {
   id: number;
-  topicName: string | null; // Added | null for safety
+  topicName: string | null;
   title: string | null;
   content: string | null;
   author: Author;
   lastUpdated: string | null;
 }
 
-// 💥 FLATTENED DTO: Assumes the response contains TopicDetail fields + responses
-interface TopicDetailDTO extends TopicDetail {
-  responses: Response[] | null; // Added | null for safety
-}
+// 💥 SIMPLIFIED DTO: Only needs to match TopicDetail now
+interface TopicDetailDTO extends TopicDetail {}
 
-interface Response {
-  id: number;
-  name: string;
-  studentId: string;
-  date: string; // The response date
-  content: string;
-}
+// The Response interface has been removed.
 
-// --- Placeholder Icons (SVG Element Typo Fixed) ---
+// --- Placeholder Icons ---
 const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -53,23 +45,9 @@ const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const AddResponseIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    {...props}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="16" />
-    <line x1="8" y1="12" x2="16" y2="12" />
-  </svg>
-);
+// The AddResponseIcon is no longer needed.
 
-// 💥 FIX: Corrected typo from SVGSVGelement to SVGSVGElement
+// FIX: Corrected typo from SVGSVGelement to SVGSVGElement
 const LearningMaterialIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -90,7 +68,7 @@ const TopicDetailsPage: React.FC = () => {
 
   // State to hold the fetched data
   const [topicDetail, setTopicDetail] = useState<TopicDetail | null>(null);
-  const [responses, setResponses] = useState<Response[]>([]);
+  // const [responses, setResponses] = useState<Response[]>([]); <--- REMOVED
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,15 +84,13 @@ const TopicDetailsPage: React.FC = () => {
     const fetchTopicData = async () => {
       setLoading(true);
       try {
-        // Use the DTO representing the entire successful response body
         const response = await axios.get<TopicDetailDTO>(
           `${API_BASE_URL}/${topicId}`
         );
 
-        // 💥 FINAL FIX: Assign the entire data object to topicDetail
-        // and safely pull responses. This resolves the DTO flattening issue.
+        // Assign the entire data object. Responses are no longer handled here.
         setTopicDetail(response.data);
-        setResponses(response.data.responses || []);
+        // setResponses(response.data.responses || []); <--- REMOVED
 
         setError(null);
       } catch (err) {
@@ -133,7 +109,7 @@ const TopicDetailsPage: React.FC = () => {
           );
         }
         setTopicDetail(null);
-        setResponses([]);
+        // setResponses([]); <--- REMOVED
       } finally {
         setLoading(false);
       }
@@ -152,7 +128,6 @@ const TopicDetailsPage: React.FC = () => {
     );
   }
 
-  // This block is what was being hit due to !topicDetail
   if (error || !topicDetail) {
     return (
       <Layout variant="dark" showFooter={false}>
@@ -171,7 +146,7 @@ const TopicDetailsPage: React.FC = () => {
     );
   }
 
-  // 💥 DEFENSIVE CODE: Safely extract and default values to prevent crashes
+  // DEFENSIVE CODE: Safely extract and default values to prevent crashes
   const { topicName, title, author, lastUpdated, content } = topicDetail;
 
   const safeTopicName = topicName ?? "N/A Topic";
@@ -202,39 +177,15 @@ const TopicDetailsPage: React.FC = () => {
 
       {/* Topic Details Card (Dynamic) */}
       <TopicContentCard
-        title={safeTitle} // Passing the safe, non-null value
+        title={safeTitle}
         creator={displayCreator}
         date={safeDate}
         content={safeContent}
       />
 
-      {/* Responses Section (Dynamic) */}
-      <div className="mb-8">
-        {responses.length === 0 && (
-          <div className="text-center py-10 text-white text-lg bg-white bg-opacity-10 rounded-xl">
-            No responses yet. Be the first to add one!
-          </div>
-        )}
+      {/* The Responses Section (Dynamic) is REMOVED */}
 
-        {responses.map((response, index) => (
-          <ResponseCard
-            key={response.id}
-            isFirst={index === 0}
-            name={response.name}
-            studentId={response.studentId}
-            date={response.date}
-            content={response.content}
-          />
-        ))}
-      </div>
-
-      {/* Action Banners */}
-      <ActionBanner
-        title="ADD RESPONSE"
-        href={`/topics/${topicId}/add-response`}
-        Icon={AddResponseIcon}
-        gradient="from-[#FF00FF] to-[#8A2BE2]"
-      />
+      {/* Action Banner (ADD RESPONSE) is REMOVED */}
 
       <ActionBanner
         title="VIEW LEARNING MATERIAL"
