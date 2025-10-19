@@ -50,9 +50,10 @@ public class ForumService {
     // --- Thread Methods ---
 
     public List<ForumThread> getThreadsByCategorySlug(String categorySlug) {
-        // 🚀 THE FINAL FIX: Switch to the explicit JPQL method
-        // to bypass Spring Data JPA's misinterpretation of the entity/view.
-        return threadRepository.findThreadsByCategorySlug(categorySlug); 
+        // 🚀 FINAL FIX: Calling the Native Query method.
+        // This is the fastest, most reliable way to force the correct SQL 
+        // past the conflicting entity mapping for the thread list view.
+        return threadRepository.findThreadsByCategorySlugNative(categorySlug); 
     }
 
     /**
