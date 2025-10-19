@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service; 
 
 import com.thesensationals.campuslearn.dto.ForumCategoryDTO; 
+import com.thesensationals.campuslearn.dto.ForumThreadDTO; 
 import com.thesensationals.campuslearn.model.ForumCategory;
 import com.thesensationals.campuslearn.model.ForumThread;
 import com.thesensationals.campuslearn.repository.ForumCategoryRepository;
@@ -31,15 +32,13 @@ public class ForumService {
                 .collect(Collectors.toList());
     }
 
-    // Uses the clean constructor call (since DTO is fixed)
     private ForumCategoryDTO convertToDto(ForumCategory category) {
         return new ForumCategoryDTO(
                 category.getId(),
                 category.getName(),
                 category.getSlug(),
                 category.getLastAuthor(),
-                // Convert Instant to Long (milliseconds since epoch)
-                category.getLastUpdated().toEpochMilli() 
+                category.getLastUpdated().toEpochMilli()
         );
     }
     
@@ -49,18 +48,18 @@ public class ForumService {
     
     // --- Thread Methods ---
 
-    public List<ForumThread> getThreadsByCategorySlug(String categorySlug) {
-        // 🚀 FINAL FIX: Calling the Native Query method.
-        // This is the fastest, most reliable way to force the correct SQL 
-        // past the conflicting entity mapping for the thread list view.
-        return threadRepository.findThreadsByCategorySlugNative(categorySlug); 
+    // Fixed to return DTO List
+    public List<ForumThreadDTO> getThreadsByCategorySlug(String categorySlug) {
+        return threadRepository.findByForumCategory_Slug(categorySlug).stream()
+            .map(ForumThreadDTO::new) 
+            .collect(Collectors.toList()); 
     }
 
     /**
-     * This method is correct and was added to fix the controller compilation error.
+     * Finds a single thread, fixed to return DTO.
      */
-    public Optional<ForumThread> getThreadBySlugs(String categorySlug, String threadSlug) {
-        // This convention-based method is correct for a single unique thread lookup.
-        return threadRepository.findByForumCategorySlugAndSlug(categorySlug, threadSlug);
+    public Optional<ForumThreadDTO> getThreadBySlugs(String categorySlug, String threadSlug) {
+        return threadRepository.findByForumCategory_SlugAndTopicName(categorySlug, threadSlug)
+            .map(ForumThreadDTO::new); 
     }
 }

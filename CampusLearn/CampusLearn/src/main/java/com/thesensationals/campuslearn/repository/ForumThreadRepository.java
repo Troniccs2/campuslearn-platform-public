@@ -12,21 +12,12 @@ import com.thesensationals.campuslearn.model.ForumThread;
 @Repository
 public interface ForumThreadRepository extends JpaRepository<ForumThread, Long> {
     
-    // 🛑 QUICK FIX: Native SQL Query to bypass Hibernate's confusion.
-    // We are assuming your database view is named 'forum_view'
-    @Query(
-        value = "SELECT * FROM forum_view WHERE slug = :categorySlug", 
-        nativeQuery = true
-    )
-    List<ForumThread> findThreadsByCategorySlugNative(@Param("categorySlug") String categorySlug); 
+    // 1. Method for TopicDetailService (Find by Topic's own slug)
+    Optional<ForumThread> findByTopicName(String topicName);
 
-    // NOTE: I'm keeping your original JPQL query, just renaming it for clarity,
-    // as the Native Query is the one we will now use in the service.
-    @Query("SELECT t FROM ForumThread t JOIN t.forumCategory c WHERE c.slug = :categorySlug")
-    List<ForumThread> findThreadsByCategorySlugJPQL(@Param("categorySlug") String categorySlug); 
-    
-    // 3. The method for a single thread view (Kept as is, assuming it works)
-    Optional<ForumThread> findByForumCategorySlugAndSlug(String categorySlug, String threadSlug);
+    // 2. FIX: Uses the correct JPA naming convention to avoid the native query issues
+    List<ForumThread> findByForumCategory_Slug(String categorySlug);
 
-    // ⛔ Removed the problematic convention method: List<ForumThread> findByForumCategorySlug(String categorySlug);
+    // 3. Finds Thread by Category's slug AND Thread's topicName.
+    Optional<ForumThread> findByForumCategory_SlugAndTopicName(String categorySlug, String threadSlug);
 }
