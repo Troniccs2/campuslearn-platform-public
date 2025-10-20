@@ -1,67 +1,70 @@
 package com.thesensationals.campuslearn.service;
 
 import com.thesensationals.campuslearn.model.LearningMaterial;
-import com.thesensationals.campuslearn.model.Topic; // ADDED: Import Topic model
-import com.thesensationals.campuslearn.model.User; // ADDED: Import User model
+import com.thesensationals.campuslearn.model.Topic;
+import com.thesensationals.campuslearn.model.User;
 import com.thesensationals.campuslearn.repository.LearningMaterialRepository;
-import com.thesensationals.campuslearn.repository.TopicRepository; // ADDED: Import TopicRepository
-import com.thesensationals.campuslearn.repository.UserRepository; // ADDED: Import UserRepository
-import org.springframework.beans.factory.annotation.Value; // ADDED: Import Value
-import org.springframework.scheduling.annotation.Async;
+import com.thesensationals.campuslearn.repository.TopicRepository;
+import com.thesensationals.campuslearn.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // ADDED: Import Transactional
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.dao.DataIntegrityViolationException;
 
+import java.io.IOException; 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
+import java.time.Instant; 
 
 @Service
 public class UploadService {
 
     private final LearningMaterialRepository materialRepository;
-    private final TopicRepository topicRepository; // NEW
-    private final UserRepository userRepository;   // NEW
-
-    // 💡 IMPROVEMENT: Use @Value to define the directory
+    private final TopicRepository topicRepository;
+    private final UserRepository userRepository;
     private final String UPLOAD_DIR; 
 
     public UploadService(
             LearningMaterialRepository materialRepository,
             TopicRepository topicRepository,
             UserRepository userRepository,
-            @Value("${file.upload-dir:uploads/learning_materials/}") String uploadDir // Set default value
+            @Value("${file.upload-dir:uploads/learning_materials/}") String uploadDir 
     ) {
         this.materialRepository = materialRepository;
         this.topicRepository = topicRepository;
         this.userRepository = userRepository;
         this.UPLOAD_DIR = uploadDir;
         
-        // Ensure the upload directory exists
+        // Ensure the upload directory exists upon startup
         try {
             Files.createDirectories(Paths.get(UPLOAD_DIR));
-        } catch (Exception e) {
-            // CRITICAL ERROR: The application cannot save files. Stop startup or log severely.
-            System.err.println("❌ CRITICAL: Could not create upload directory: " + UPLOAD_DIR + ". Error: " + e.getMessage());
-            // It's often better to throw a RuntimeException here to halt startup if file storage is mandatory
+            System.out.println("✅ Upload directory checked/created: " + UPLOAD_DIR);
+        } catch (IOException e) { 
+            String msg = "❌ CRITICAL: Could not create upload directory: " + UPLOAD_DIR + ". Check permissions/path.";
+            System.err.println(msg);
+            throw new RuntimeException(msg, e); 
         }
     }
 
-    @Async
-    @Transactional // ⬅️ NEW: Ensure DB save is transactional
+    /**
+     * Processes the file upload, saving the file to disk and the metadata to the database.
+     */
+    @Transactional 
     public void processMaterialUpload(Long topicId, MultipartFile[] files, Long userId) {
         
-        System.out.println("Starting asynchronous processing for Topic ID: " + topicId + " by User ID: " + userId);
+        System.out.println("Starting synchronous processing for Topic ID: " + topicId + " by User ID: " + userId);
         
-        // CRITICAL FIX 1: Fetch the Topic and User entities once
+        // 1. Fetch the Topic and User entities
         Optional<Topic> topicOpt = topicRepository.findById(topicId);
         Optional<User> userOpt = userRepository.findById(userId);
         
-        if (!topicOpt.isPresent() || !userOpt.isPresent()) {
-             System.err.println("❌ FAILED: Topic or User not found. Topic ID: " + topicId + ", User ID: " + userId);
-             return; // Cannot proceed without valid entities
+        if (topicOpt.isEmpty() || userOpt.isEmpty()) {
+              System.err.println("❌ FAILED: Topic or User not found. Topic ID: " + topicId + ", User ID: " + userId);
+              throw new IllegalArgumentException("Topic or User ID is invalid. Could not link material."); 
         }
 
         Topic topic = topicOpt.get();
@@ -70,41 +73,70 @@ public class UploadService {
         for (MultipartFile file : files) {
             if (file.isEmpty() || file.getOriginalFilename() == null) continue;
             
+            // NOTE: originalFileName may contain the folder structure from webkitdirectory upload!
+            String originalFileName = file.getOriginalFilename();
+            
             try {
-                // 1. Generate a unique name and path
-                String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename().replaceAll("\\s+", "_");
-                Path filePath = Paths.get(UPLOAD_DIR, fileName);
-
-                // 2. Save file to disk
-                Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                // --- 2. FILE SYSTEM OPERATIONS ---
                 
-                // 3. Create database entry
+                // IMPORTANT: We need to replace ALL illegal path separators from the originalFileName
+                String sanitizedOriginalFileName = originalFileName.replaceAll("[/\\\\\\s]", "_");
+
+                String fileNameOnDisk = System.currentTimeMillis() + "_" + sanitizedOriginalFileName;
+                
+                // Build the final path in the UPLOAD_DIR
+                Path filePath = Paths.get(UPLOAD_DIR, fileNameOnDisk);
+
+                // Explicitly catch IOException during file copy
+                try {
+                    Path directoryPath = filePath.getParent();
+                    // ✅ FIX APPLIED HERE: The directory creation must be done inside the IOException handling block.
+                    Files.createDirectories(directoryPath); 
+                    
+                    Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException ioE) {
+                    System.err.println("❌ I/O ERROR: Failed to save file to disk or read stream: " + originalFileName);
+                    ioE.printStackTrace();
+                    // Re-throw as a RuntimeException to trigger transaction rollback
+                    throw new RuntimeException("File system error during upload: " + ioE.getMessage(), ioE);
+                }
+                
+                // --- 3. DATABASE OPERATIONS ---
                 LearningMaterial material = new LearningMaterial();
                 
-                // CRITICAL FIX 2: Set the required entity references (Topic and User)
-                // Assuming your LearningMaterial entity uses Topic and User objects for the foreign keys:
-                material.setTopic(topic); // Set the actual Topic entity
-                material.setUploadedBy(user); // Set the actual User entity 
+                // Set entity references
+                material.setTopic(topic); 
+                material.setUploadedBy(user); 
                 
-                // Fallback if your entity uses IDs directly (Less common with Spring Data JPA):
-                // material.setTopicId(topicId); 
-                // material.setUploadedByUserId(userId); 
-                
-                material.setFileName(file.getOriginalFilename());
-                material.setFileUrl("/files/" + fileName); 
+                // Set file details and mandatory fields
+                material.setFileName(originalFileName); // Use original name for display
+                material.setTitle(originalFileName.length() > 255 ? originalFileName.substring(0, 250) + "..." : originalFileName);
+                material.setFileUrl("/files/" + fileNameOnDisk); // Use the sanitized name for the URL link
                 material.setMimeType(file.getContentType());
                 material.setStatus("READY"); 
+                material.setCreationDate(Instant.now()); 
                 
-                materialRepository.save(material);
+                try {
+                    materialRepository.save(material);
+                    System.out.println("✅ SUCCESSFULLY PROCESSED & SAVED file: " + originalFileName);
                 
-                System.out.println("✅ SUCCESSFULLY PROCESSED & SAVED file: " + file.getOriginalFilename() + " for Topic ID: " + topicId);
-                
-            } catch (Exception e) {
-                // ⚠️ IMPROVEMENT: Print the full stack trace for better debugging
-                System.err.println("❌ FAILED to process and save file: " + file.getOriginalFilename() + ". Check for DB foreign key issues or file permissions.");
-                e.printStackTrace(); // Print the full error
+                // Explicitly catch DataIntegrityViolationException
+                } catch (DataIntegrityViolationException dbEx) { 
+                    System.err.println("❌ DB ERROR: Mandatory field missing or constraint violated for file: " + originalFileName);
+                    System.err.println("Database Error Detail (Check for the column!): " + dbEx.getRootCause().getMessage());
+                    throw new RuntimeException("Database save failed: " + dbEx.getRootCause().getMessage(), dbEx);
+
+                } catch (Exception dbEx) {
+                    System.err.println("❌ GENERIC DATABASE SAVE FAILED for file: " + originalFileName);
+                    dbEx.printStackTrace(); 
+                    throw new RuntimeException("Database save failed due to unexpected error.", dbEx);
+                }
+
+            } catch (RuntimeException e) { 
+                // Catches exceptions re-thrown from I/O and DB blocks to allow transaction rollback
+                throw e; 
             }
         }
-        System.out.println("Asynchronous processing complete for Topic ID: " + topicId);
+        System.out.println("Synchronous processing complete for Topic ID: " + topicId);
     }
 }

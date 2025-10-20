@@ -1,5 +1,3 @@
-// src/pages/ViewLearningMaterialsPage.tsx
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
@@ -8,6 +6,9 @@ import TopicCard from "../components/TopicCard";
 import LearningMaterialsBanner from "../components/LearningMaterialsBanner";
 import api from "../services/api"; // Assuming you have a configured axios instance
 
+// 🛑 CRITICAL FIX: Define the base URL of your Spring Boot server 🛑
+const BACKEND_BASE_URL = "http://localhost:8080";
+
 // Define a type for the material data received from the backend
 interface Material {
   id: number;
@@ -15,7 +16,7 @@ interface Material {
   topicName: string; // The module code (e.g., SEN381)
   authorName: string;
   uploadDate: string; // ISO 8601 string
-  fileUrl: string; // The URL to download the file
+  fileUrl: string; // The URL to download the file (e.g., /api/files/download/...)
 }
 
 // Reusing FaArrowLeft
@@ -38,18 +39,18 @@ const ViewLearningMaterialsPage: React.FC = () => {
   const navigate = useNavigate();
   const { topicId } = useParams<{ topicId: string }>();
 
-  // --- NEW STATE FOR DATA ---
+  // --- STATE FOR DATA ---
   const [materials, setMaterials] = useState<Material[]>([]);
   const [topicTitle, setTopicTitle] = useState("Loading...");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const backPath = topicId ? `/topics/${topicId}` : "/topics";
+  // Assuming topicId is used as the module code/slug (e.g., software-engineering)
   const moduleCode = topicId || "UNKNOWN";
 
   // --- DATA FETCHING LOGIC ---
   useEffect(() => {
-    // We only fetch if topicId is available
     if (!topicId) {
       setTopicTitle("Topic Not Found");
       setError("No topic ID provided in the URL.");
@@ -64,16 +65,21 @@ const ViewLearningMaterialsPage: React.FC = () => {
       try {
         // 1. Fetch materials linked to this topicId
         const materialsResponse = await api.get(`/materials/topic/${topicId}`);
-        setMaterials(materialsResponse.data);
 
-        // 2. (Optional but helpful) Fetch topic details for the title
+        const materialsArray = Array.isArray(materialsResponse.data)
+          ? materialsResponse.data
+          : [];
+        setMaterials(materialsArray as Material[]);
+
+        // 2. Fetch topic details for the title
         const topicResponse = await api.get(`/topics/${topicId}`);
-        setTopicTitle((topicResponse.data as any).title || "Topic Materials");
+        setTopicTitle((topicResponse.data as any)?.title || "Topic Materials");
       } catch (err: any) {
         console.error("Failed to fetch learning materials:", err);
-        // Display a user-friendly error
+
         setError(
-          err.response?.data?.message || "Could not load learning materials."
+          err.response?.data?.message ||
+            "Could not load learning materials. Please check server logs."
         );
         setMaterials([]);
       } finally {
@@ -82,7 +88,7 @@ const ViewLearningMaterialsPage: React.FC = () => {
     };
 
     fetchMaterials();
-  }, [topicId]); // Re-run effect when topicId changes
+  }, [topicId]);
 
   const getTopicCardTitle = (material: Material) => {
     // Example: SEN381 - Lecture Slide 1.pdf
@@ -92,9 +98,11 @@ const ViewLearningMaterialsPage: React.FC = () => {
 
   // Helper to format the date in a readable way
   const timeAgo = (dateString: string) => {
-    // Simple implementation: you'd use a library like `date-fns` for real-world
     const now = new Date();
     const past = new Date(dateString);
+
+    if (isNaN(past.getTime())) return "Unknown Date";
+
     const diffInHours = Math.floor(
       (now.getTime() - past.getTime()) / (1000 * 60 * 60)
     );
@@ -102,8 +110,10 @@ const ViewLearningMaterialsPage: React.FC = () => {
     return past.toLocaleDateString();
   };
 
-  // --- RENDERING LOGIC ---
+  // --- RENDERING LOGIC (WITH THE FIX) ---
   const renderMaterials = () => {
+    // ... (Loading, Error, Empty state logic remains the same)
+
     if (isLoading) {
       return (
         <div className="text-white text-center p-8">Loading materials...</div>
@@ -127,19 +137,33 @@ const ViewLearningMaterialsPage: React.FC = () => {
     }
 
     // Map over the fetched 'materials' state
-    return materials.map((material) => (
-      <TopicCard
-        key={material.id}
-        // Use the Material ID for unique key
-        topicName={getTopicCardTitle(material)}
-        author={`Uploaded by: ${material.authorName}`}
-        lastUpdated={timeAgo(material.uploadDate)}
-        // The URL to the actual file for download/view
-        href={material.fileUrl}
-        // Set to target="_blank" to open in a new tab for PDF/Video view
-        target="_blank"
-      />
-    ));
+    return materials.map((material) => {
+      // 🛑 CRITICAL FIX APPLIED HERE 🛑
+      // Ensure the file URL is correctly formatted for the public endpoint:
+      // http://localhost:8080/api/files/download/{filename}
+
+      const API_PREFIX = "/api/files/download";
+      let filePath = material.fileUrl;
+
+      // 1. Check if the fileUrl already contains the correct API path.
+      if (!filePath.startsWith(API_PREFIX)) {
+        // 2. If it's missing, ensure it starts with API_PREFIX and clean up any leading slashes.
+        // This handles cases where fileUrl is just 'filename.pdf' or '/filename.pdf'
+        filePath = `${API_PREFIX}/${filePath.replace(/^\//, "")}`;
+      }
+
+      return (
+        <TopicCard
+          key={material.id}
+          topicName={material.filename}
+          author={`Uploaded by: ${material.authorName}`}
+          lastUpdated={`Uploaded ${timeAgo(material.uploadDate)}`}
+          // Combine the base URL with the guaranteed correct file path
+          href={BACKEND_BASE_URL + filePath}
+          target="_blank"
+        />
+      );
+    });
   };
 
   return (

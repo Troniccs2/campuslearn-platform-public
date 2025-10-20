@@ -2,10 +2,11 @@ package com.thesensationals.campuslearn.controller;
 
 import com.thesensationals.campuslearn.model.LearningMaterial;
 import com.thesensationals.campuslearn.model.Topic;
-import com.thesensationals.campuslearn.model.User; // ADDED
+import com.thesensationals.campuslearn.model.User; 
 import com.thesensationals.campuslearn.repository.LearningMaterialRepository;
 import com.thesensationals.campuslearn.repository.TopicRepository;
-import com.thesensationals.campuslearn.service.TopicService; // ADDED
+import com.thesensationals.campuslearn.repository.UserRepository;
+import com.thesensationals.campuslearn.service.TopicService; 
 import com.thesensationals.campuslearn.service.UploadService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,24 +24,29 @@ public class LearningMaterialController {
     private final UploadService uploadService;
     private final LearningMaterialRepository materialRepository;
     private final TopicRepository topicRepository;
-    private final TopicService topicService; // ADDED
+    private final TopicService topicService; 
+    private final UserRepository userRepository; 
 
     public LearningMaterialController(
             UploadService uploadService, 
             LearningMaterialRepository materialRepository,
             TopicRepository topicRepository,
-            TopicService topicService // ADDED: Inject TopicService
+            TopicService topicService,
+            UserRepository userRepository
     ) {
         this.uploadService = uploadService;
         this.materialRepository = materialRepository;
         this.topicRepository = topicRepository;
         this.topicService = topicService;
+        this.userRepository = userRepository;
     }
 
-    // 1. ENDPOINT FOR ASYNCHRONOUS UPLOAD (FIXED USER ID EXTRACTION)
-    @PostMapping("/topics/{topicId}/materials/upload")
+    // 1. ENDPOINT FOR UPLOAD
+    // 🛑 FIX: Changed mapping to /topics/{topicId}/materials/upload to match the frontend
+    @PostMapping("/topics/{topicId}/materials/upload") 
     public ResponseEntity<String> uploadMaterials(
-            @PathVariable Long topicId,
+            // 🛑 FIX: Changed parameter from String topicSlug to Long topicId
+            @PathVariable Long topicId, 
             @RequestParam("files") MultipartFile[] files,
             @AuthenticationPrincipal UserDetails userDetails) {
         
@@ -48,25 +54,46 @@ public class LearningMaterialController {
             return ResponseEntity.badRequest().body("No files selected for upload.");
         }
         
-        // ⚠️ FIX: Safely extract the ID from the authenticated principal
-        if (!(userDetails instanceof User)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Authenticated user type is invalid.");
+        // --- 🎯 USER ID EXTRACTION ---
+        User user = userRepository.findByEmail(userDetails.getUsername()) 
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.FORBIDDEN, 
+                "Authenticated user not found."
+            ));
+
+        Long userId = user.getId();
+        
+        // 🛑 REMOVED: The unnecessary slug-to-ID conversion is gone.
+        // The topicId path variable is used directly.
+        
+        try {
+            // Call the service with the topicId obtained directly from the URL
+            uploadService.processMaterialUpload(topicId, files, userId);
+            
+            return ResponseEntity.accepted().body("Files accepted and processing started.");
+            
+        } catch (IllegalArgumentException e) {
+             // Catch the error thrown by UploadService if Topic or User ID is invalid
+             return ResponseEntity.badRequest().body(e.getMessage());
+             
+        } catch (Exception e) {
+            // CRITICAL: Log the full error to the console for diagnosis
+            System.err.println("❌ Upload processing failed unexpectedly: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Return a generic 500 status to the client
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error during file processing: " + e.getMessage());
         }
-        Long userId = ((User) userDetails).getId();
-        
-        uploadService.processMaterialUpload(topicId, files, userId);
-        
-        return ResponseEntity.accepted().body("Files accepted and processing started in the background.");
     }
     
-    // 2. ENDPOINT TO FETCH MATERIALS BY ID
+    // 2. ENDPOINT TO FETCH MATERIALS BY ID (Kept for internal use)
     @GetMapping("/topics/{topicId}/materials")
     public ResponseEntity<List<LearningMaterial>> getMaterialsForTopic(@PathVariable Long topicId) {
         List<LearningMaterial> materials = materialRepository.findByTopicId(topicId);
         return ResponseEntity.ok(materials);
     }
     
-    // 3. ENDPOINT (Uses Slug to find materials) 
+    // 3. ENDPOINT (Uses Slug to find materials) - Kept original functionality
     @GetMapping("/materials/topic/{topicSlug}")
     public ResponseEntity<List<LearningMaterial>> getMaterialsByTopicSlug(@PathVariable String topicSlug) {
         Topic topic = topicRepository.findByTopicName(topicSlug)
@@ -80,7 +107,7 @@ public class LearningMaterialController {
         return ResponseEntity.ok(materials);
     }
     
-    // 4. NEW FEATURE: ENDPOINT TO ENROLL STUDENTS TO A TOPIC
+    // 4. ENDPOINT TO ENROLL STUDENTS TO A TOPIC
     @PostMapping("/topics/{topicId}/enroll-students")
     public ResponseEntity<Topic> enrollStudentsToTopic(
         @PathVariable Long topicId,

@@ -82,6 +82,10 @@ public class SecurityConfig {
                 // Public Endpoints (Authentication/Registration/Password Reset)
                 .requestMatchers("/api/auth/**").permitAll() 
                 
+                // ------------------ FILE ENDPOINT SECURITY (FIXED) ------------------
+                // 🛑 CHANGED to .permitAll() to prevent the login prompt when clicking the direct file link.
+                .requestMatchers(HttpMethod.GET, "/api/files/download/**").permitAll()
+                
                 // ------------------ FORUM ENDPOINT SECURITY ------------------
                 // Allow public access to all forum read endpoints
                 .requestMatchers(HttpMethod.GET, "/api/forums/categories").permitAll()

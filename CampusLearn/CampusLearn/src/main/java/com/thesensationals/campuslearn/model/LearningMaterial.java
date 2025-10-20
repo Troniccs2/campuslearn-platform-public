@@ -5,9 +5,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.ManyToOne;       // NEW: For Many-to-One relationship
-import jakarta.persistence.JoinColumn;      // NEW: For defining the foreign key column
-import jakarta.persistence.FetchType;     // NEW: For defining the fetching strategy
+import jakarta.persistence.ManyToOne; 
+import jakarta.persistence.JoinColumn; 
+import jakarta.persistence.FetchType; 
+
+import java.time.Instant; // 🛑 NEW: Import Instant for the creationDate field
 
 @Entity
 @Table(name = "learning_material")
@@ -17,29 +19,43 @@ public class LearningMaterial {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    // 💡 FIX 1: Replace topicId with the Topic entity object
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id", nullable = false) 
-    private Topic topic; 
+    // 🛑 NEW FIELD: Added the mandatory title field
+    private String title;
     
     private String fileName;
     private String fileUrl;
     private String mimeType;
     
-    // 💡 FIX 2: Replace uploadedByUserId with the User entity object
+    // 🛑 NEW FIELD: Added the mandatory creationDate field
+    private Instant creationDate;
+    
+    private String status;
+    
+    // Relationship: Link to Topic
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "topic_id", nullable = false) 
+    private Topic topic; 
+    
+    // Relationship: Link to User (Uploader)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by_user_id", nullable = false)
     private User uploadedBy;
     
-    private String status;
-
+    
     // 1. DEFAULT CONSTRUCTOR (required by JPA)
     public LearningMaterial() {
     }
 
+    // ------------------------------------
     // --- GETTERS ---
+    // ------------------------------------
     public Long getId() {
         return id;
+    }
+
+    // 🛑 NEW GETTER
+    public String getTitle() {
+        return title;
     }
 
     public Topic getTopic() {
@@ -65,11 +81,21 @@ public class LearningMaterial {
     public String getStatus() {
         return status;
     }
-
-    // --- SETTERS ---
-    // Note: We don't set the ID
     
-    // This is the method that fixes the "cannot find symbol: setTopic(Topic)" error
+    // 🛑 NEW GETTER
+    public Instant getCreationDate() {
+        return creationDate;
+    }
+
+    // ------------------------------------
+    // --- SETTERS ---
+    // ------------------------------------
+    
+    // 🛑 NEW SETTER
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
     public void setTopic(Topic topic) {
         this.topic = topic;
     }
@@ -86,12 +112,16 @@ public class LearningMaterial {
         this.mimeType = mimeType;
     }
 
-    // This is the method that fixes the "cannot find symbol: setUploadedBy(User)" error
     public void setUploadedBy(User uploadedBy) {
         this.uploadedBy = uploadedBy;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    // 🛑 NEW SETTER
+    public void setCreationDate(Instant creationDate) {
+        this.creationDate = creationDate;
     }
 }
