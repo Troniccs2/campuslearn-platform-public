@@ -9,7 +9,6 @@ import FileDropZone from "../components/FileDropZone";
 
 // --- START: Types and Placeholder Components ---
 
-// Type for the data received from the backend /users/students endpoint
 interface Student {
   id: number;
   firstName: string;
@@ -17,7 +16,6 @@ interface Student {
   email: string;
 }
 
-// ⚠️ Placeholder for a Multi-Select UI Component
 const MultiSelectDropdown = ({
   options,
   selected,
@@ -31,11 +29,11 @@ const MultiSelectDropdown = ({
 }) => (
   <div className="space-y-2">
     <label className="text-gray-300 font-medium text-lg">
-      Select Students to Enroll (Optional)
+      Select Students to Enroll (Hold **Ctrl/Cmd** to select multiple)
     </label>
     <select
       multiple
-      value={selected.map(String)} // Map to string for <select> value
+      value={selected.map(String)}
       onChange={(e) => {
         const selectedIds = Array.from(e.target.options)
           .filter((option) => option.selected)
@@ -45,17 +43,20 @@ const MultiSelectDropdown = ({
       className="w-full p-4 rounded-lg bg-gray-800 bg-opacity-70 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors h-48"
       disabled={disabled}
     >
+      {options.length === 0 && (
+        <option disabled>
+          {selected.length > 0 ? "No Students Found" : "Loading students..."}
+        </option>
+      )}
       {options.map((student) => (
         <option key={student.id} value={student.id}>
           {student.firstName} {student.lastName} ({student.email})
         </option>
       ))}
-      {options.length === 0 && <option disabled>Loading students...</option>}
     </select>
   </div>
 );
 
-// Placeholder Icons
 const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -94,20 +95,19 @@ const CreateTopicPage: React.FC = () => {
   const [topicTitle, setTopicTitle] = useState("");
   const [topicInfo, setTopicInfo] = useState("");
 
-  // ⬇️ NEW STATE FOR STUDENT ENROLLMENT ⬇️
+  // State for Student Enrollment
   const [availableStudents, setAvailableStudents] = useState<Student[]>([]);
   const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
 
   const [newTopicId, setNewTopicId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // ----------------------------------------
 
-  // ⬇️ NEW EFFECT: Fetch students when the component mounts ⬇️
+  // Effect: Fetch students when the component mounts
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        // Calls the new backend endpoint: GET /api/users/students
+        // Calls the backend endpoint to get all students
         const response = await api.get<Student[]>("/users/students");
         setAvailableStudents(response.data);
       } catch (err) {
@@ -124,6 +124,8 @@ const CreateTopicPage: React.FC = () => {
   };
 
   const handleCreateTopic = async (event: FormEvent) => {
+    // This is the correct place for preventDefault(),
+    // as it is guaranteed to receive the FormEvent from the <form onSubmit>
     event.preventDefault();
 
     console.log("handleCreateTopic initiated...");
@@ -138,16 +140,14 @@ const CreateTopicPage: React.FC = () => {
     }
 
     try {
-      // 🚨 FIX: INCLUDE selectedStudentIds in the topicData
       const topicData = {
-        // We ensure the topicName (slug) is created using the title, matching backend logic
         topicName: topicTitle
           .trim()
           .toLowerCase()
           .replaceAll(/[^a-z0-9]+/g, "-"),
         title: topicTitle.trim(),
         content: topicInfo.trim(),
-        studentIds: selectedStudentIds, // ⬅️ The key the backend's TopicRequest DTO is now expecting
+        studentIds: selectedStudentIds, // Sending the selected IDs
       };
 
       console.log("Attempting API POST to /topics with data:", topicData);
@@ -213,6 +213,7 @@ const CreateTopicPage: React.FC = () => {
 
     // STAGE 1: Topic Creation Form
     return (
+      // Form onSubmit handles the entire submission flow
       <form onSubmit={handleCreateTopic}>
         <FormInputCard title="TOPIC DETAILS">
           <input
@@ -244,7 +245,7 @@ const CreateTopicPage: React.FC = () => {
           />
         </FormInputCard>
 
-        {/* ⬇️ NEW SECTION: Student Selection Card ⬇️ */}
+        {/* Student Selection Card */}
         <div className="mt-6">
           <FormInputCard title="ENROLL STUDENTS">
             <MultiSelectDropdown
@@ -255,20 +256,22 @@ const CreateTopicPage: React.FC = () => {
             />
           </FormInputCard>
         </div>
-        {/* ------------------------------------- */}
 
         <div className="w-full mt-8">
+          {/* The ActionBanner button must have type="submit" to trigger the form */}
           <ActionBanner
             title={isLoading ? "POSTING TOPIC..." : "POST NEW TOPIC"}
-            // 🚨 FIX for TypeScript error: Required prop must be present 🚨
             href="#"
-            // -------------------------------------------------------------
             Icon={PostIcon}
             gradient="from-[#8A2BE2] to-[#FF00FF]"
             className={`mt-8 ${
               isLoading ? "opacity-50 cursor-not-allowed" : "hover:scale-[1.02]"
             } transition-all`}
-            onClick={handleCreateTopic}
+            // 🚨 CRITICAL FIX: The onClick prop is removed or left empty,
+            // as the form's onSubmit handles the logic. We only rely on
+            // the button inside ActionBanner having type="submit".
+            // Leaving it as a dummy function to satisfy the component's prop requirement:
+            onClick={() => {}}
           />
         </div>
       </form>

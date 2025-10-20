@@ -1,6 +1,3 @@
-// Remove all Lombok annotations like @Data, @Getter, @Setter, @NoArgsConstructor, etc.
-// import lombok.Data; // REMOVE THIS LINE
-
 package com.thesensationals.campuslearn.model;
 
 import jakarta.persistence.Entity;
@@ -8,8 +5,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.ManyToOne;       // NEW: For Many-to-One relationship
+import jakarta.persistence.JoinColumn;      // NEW: For defining the foreign key column
+import jakarta.persistence.FetchType;     // NEW: For defining the fetching strategy
 
-// Your existing class structure
 @Entity
 @Table(name = "learning_material")
 public class LearningMaterial {
@@ -18,21 +17,61 @@ public class LearningMaterial {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    private Long topicId; 
+    // 💡 FIX 1: Replace topicId with the Topic entity object
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "topic_id", nullable = false) 
+    private Topic topic; 
+    
     private String fileName;
     private String fileUrl;
     private String mimeType;
-    private Long uploadedByUserId;
+    
+    // 💡 FIX 2: Replace uploadedByUserId with the User entity object
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploaded_by_user_id", nullable = false)
+    private User uploadedBy;
+    
     private String status;
 
-    // 1. ADD A DEFAULT CONSTRUCTOR (required by JPA)
+    // 1. DEFAULT CONSTRUCTOR (required by JPA)
     public LearningMaterial() {
     }
 
-    // 2. ADD SETTERS (to fix the 'cannot find symbol' errors)
+    // --- GETTERS ---
+    public Long getId() {
+        return id;
+    }
 
-    public void setTopicId(Long topicId) {
-        this.topicId = topicId;
+    public Topic getTopic() {
+        return topic;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public User getUploadedBy() {
+        return uploadedBy;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    // --- SETTERS ---
+    // Note: We don't set the ID
+    
+    // This is the method that fixes the "cannot find symbol: setTopic(Topic)" error
+    public void setTopic(Topic topic) {
+        this.topic = topic;
     }
 
     public void setFileName(String fileName) {
@@ -47,23 +86,12 @@ public class LearningMaterial {
         this.mimeType = mimeType;
     }
 
-    public void setUploadedByUserId(Long uploadedByUserId) {
-        this.uploadedByUserId = uploadedByUserId;
+    // This is the method that fixes the "cannot find symbol: setUploadedBy(User)" error
+    public void setUploadedBy(User uploadedBy) {
+        this.uploadedBy = uploadedBy;
     }
 
     public void setStatus(String status) {
         this.status = status;
     }
-    
-    // 3. ADD GETTERS (you will likely need these elsewhere)
-    
-    public Long getId() {
-        return id;
-    }
-
-    public Long getTopicId() {
-        return topicId;
-    }
-    
-    // ... add remaining getters for other fields if needed
 }

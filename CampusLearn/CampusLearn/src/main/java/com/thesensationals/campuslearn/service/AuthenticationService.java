@@ -4,8 +4,9 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.security.core.context.SecurityContextHolder; // NEW IMPORT
-import org.springframework.security.core.userdetails.UserDetails; // NEW IMPORT
+import org.springframework.security.core.Authentication; // 🚨 NEW IMPORT
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,9 @@ public class AuthenticationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // 1. REGISTRATION LOGIC
+    // [REGISTRATION, LOGIN, FORGOT, RESET PASSWORD, INITIAL ADMIN CREATION METHODS REMAIN UNCHANGED]
+
+    // ... (1. REGISTRATION LOGIC)
     public AuthResponse register(AuthRequest request) throws Exception {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new Exception("Email is already registered.");
@@ -64,7 +67,7 @@ public class AuthenticationService {
         return new AuthResponse("User successfully registered! You can now log in.", userRole.name());
     }
 
-    // 2. LOGIN LOGIC
+    // ... (2. LOGIN LOGIC)
     public AuthResponse login(AuthRequest request) throws Exception {
         Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
 
@@ -83,7 +86,7 @@ public class AuthenticationService {
         return new AuthResponse("Login successful! Welcome back, " + user.getFirstName() + ".", user.getRole().name());
     }
 
-    // 3. FORGOT PASSWORD
+    // ... (3. FORGOT PASSWORD)
     public AuthResponse generateResetToken(AuthRequest request) throws Exception {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new Exception("User not found for this email."));
@@ -98,7 +101,7 @@ public class AuthenticationService {
         return new AuthResponse("Password reset initiated. A link has been sent to your email.");
     }
 
-    // 4. RESET PASSWORD
+    // ... (4. RESET PASSWORD)
     public AuthResponse resetPassword(PasswordResetRequest request) throws Exception {
         User user = userRepository.findByResetToken(request.getToken())
                 .orElseThrow(() -> new Exception("Invalid reset token."));
@@ -117,7 +120,7 @@ public class AuthenticationService {
         return new AuthResponse("Password successfully reset.");
     }
 
-    // 5. INITIAL ADMIN CREATION
+    // ... (5. INITIAL ADMIN CREATION)
     public void createInitialAdminUser(String email, String password, String firstName, String lastName) {
         Optional<User> adminOptional = userRepository.findByRole(Role.ADMIN);
 
@@ -134,23 +137,36 @@ public class AuthenticationService {
         }
     }
     
-    // 🚀 NEW METHOD: Retrieve the current authenticated User (REQUIRED for TopicService)
-    public User getCurrentUser() {
-        // Get the principal object from Spring Security Context
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    // 🚨 FIX: Return Optional<User> to handle unauthenticated (anonymous) access gracefully.
+    public Optional<User> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        String username;
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Optional.empty(); // No user authenticated
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        // Check if the user is the default anonymous user created by Spring Security
+        if (principal.equals("anonymousUser")) { 
+             return Optional.empty(); // Explicitly handle the unauthenticated principal
+        }
+        
+        String username = null;
         
         // The principal is typically the UserDetails object you created
         if (principal instanceof UserDetails) {
             username = ((UserDetails) principal).getUsername();
-        } else {
-            // Fallback: This shouldn't happen with correct authentication setup
-            username = principal.toString();
+        } else if (principal instanceof String) {
+            // This is the fallback if the principal is a raw string (like "anonymousUser" or a username)
+            username = (String) principal;
         }
 
         // Fetch the full User entity using the username (email)
-        return userRepository.findByEmail(username)
-                .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database: " + username));
+        if (username != null && !username.equalsIgnoreCase("anonymousUser")) {
+            return userRepository.findByEmail(username);
+        }
+        
+        return Optional.empty();
     }
 }

@@ -9,8 +9,8 @@ interface ActionBannerProps {
   className?: string;
   gradient: string; // e.g., 'from-pink-500 to-red-500'
   Icon: React.ElementType;
-  // 🚨 NEW PROP: Optional handler for external click actions (like form submission)
-  onClick?: (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent) => void;
+  // The onClick handler is designed to take the MouseEvent from the button click
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const ActionBanner: React.FC<ActionBannerProps> = ({
@@ -18,30 +18,39 @@ const ActionBanner: React.FC<ActionBannerProps> = ({
   href,
   gradient,
   Icon,
-  className, // Destructure className
-  onClick, // Destructure new onClick
+  className,
+  onClick,
 }) => {
   const navigate = useNavigate();
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // 1. If an explicit onClick handler is provided (e.g., from the form in CreateTopicPage),
-    //    call it and prevent the default navigation action.
+    // 1. If an explicit onClick handler is provided, we assume it manages submission
+    //    (i.e., it came from a component's form submission logic).
     if (onClick) {
-      e.preventDefault();
+      // We call the external handler. If the external handler doesn't call
+      // preventDefault (e.g., if it's used inside a <form>), the form will submit.
+      // Note: We don't call e.preventDefault() here by default if type="submit",
+      // to allow the parent <form onSubmit> to fire naturally.
       onClick(e);
       return;
     }
 
-    // 2. If no onClick is provided, proceed with the default navigation behavior.
+    // 2. If no onClick is provided, this component handles navigation.
+    //    We prevent the default button action, which might be "submit" if the
+    //    button is inside a form without a type specified.
     e.preventDefault();
     navigate(href);
   };
 
+  // The component uses a <button> which is crucial for form submission
   return (
     <button
-      // 🚨 Use the unified handleClick which correctly manages form submission vs. navigation
       onClick={handleClick}
-      type={onClick ? "submit" : "button"} // 🚨 Set type to submit if an onClick (submission) is provided
+      // 🚨 Key Fix: Setting type="submit" guarantees the parent form's onSubmit
+      //    handler is called when onClick is present (implying form context).
+      //    Otherwise, it's a standard button.
+      type={onClick ? "submit" : "button"}
+      disabled={!onClick && href === "#"} // Optional: Disable if it's a dummy navigation link
       className={`
                 flex items-center justify-center p-4 my-4 w-full
                 rounded-2xl shadow-xl 

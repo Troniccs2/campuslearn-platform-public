@@ -25,10 +25,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     /**
-     * CRITICAL FIX: Defines the PasswordEncoder bean.
+     * Defines the PasswordEncoder bean.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // We are using BCrypt, which is a modern, strong hashing function.
         return new BCryptPasswordEncoder();
     }
 
@@ -40,15 +41,20 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
     
-    // CORS FIX: Defines a fully permissive CORS configuration for the frontend
+    /**
+     * Defines a fully permissive CORS configuration for the frontend development server.
+     */
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // IMPORTANT: Replace "http://localhost:5173" if your frontend URL changes
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); 
         
+        // Allow all standard methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); 
+        // Allow necessary headers for authentication and content type
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
+        // Required for cookies/sessions/Basic Auth with CORS
         configuration.setAllowCredentials(true); 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -63,21 +69,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // CORS FIX: Apply the custom CORS configuration source
+            // Apply the custom CORS configuration source
             .cors(Customizer.withDefaults())
-            // Disable CSRF for stateless API
-            .csrf(AbstractHttpConfigurer::disable) // Use standard Spring Boot 3 syntax
+            // Disable CSRF for stateless API (as you are not managing session tokens/cookies for security)
+            .csrf(AbstractHttpConfigurer::disable) 
+            
             .authorizeHttpRequests(auth -> auth
                 
-                // 🚨 CRITICAL FIX: Allow all OPTIONS requests (CORS Preflight) to go through
+                // CRITICAL FIX: Allow all OPTIONS requests (CORS Preflight) to go through
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
-                // Public Endpoints (No Authentication Required)
+                // Public Endpoints (Authentication/Registration/Password Reset)
                 .requestMatchers("/api/auth/**").permitAll() 
                 
-                // FIX: Allow public access to the forum read endpoints
+                // ------------------ FORUM ENDPOINT SECURITY ------------------
+                // Allow public access to all forum read endpoints
                 .requestMatchers(HttpMethod.GET, "/api/forums/categories").permitAll()
-                // Permit any other forum GET endpoints (threads, thread view, etc.)
                 .requestMatchers(HttpMethod.GET, "/api/forums/**").permitAll()
                 
                 // ------------------ TOPIC ENDPOINT SECURITY ------------------
@@ -91,9 +98,8 @@ public class SecurityConfig {
                 // 2. POST /api/topics: Only accessible by TUTOR and ADMIN roles for creation
                 .requestMatchers(HttpMethod.POST, "/api/topics").hasAnyRole("TUTOR", "ADMIN")
                 
-                // -----------------------------------------------------------------
-                
-                // Require authentication for all other requests
+                // ------------------ GENERAL/FALLBACK SECURITY ------------------
+                // Require authentication for all other requests that haven't been explicitly permitted
                 .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults()); // Use Basic Auth for initial testing
