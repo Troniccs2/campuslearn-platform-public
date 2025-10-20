@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.security.core.Authentication; // 🚨 NEW IMPORT
+import org.springframework.security.core.Authentication; 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,20 +22,22 @@ public class AuthenticationService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService; // Inject EmailService
 
-    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    // Manual Constructor Injection (Standard Spring practice)
+    // NOTE: If you use @RequiredArgsConstructor/etc. on this class, you can remove this block.
+    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
-    // [REGISTRATION, LOGIN, FORGOT, RESET PASSWORD, INITIAL ADMIN CREATION METHODS REMAIN UNCHANGED]
-
-    // ... (1. REGISTRATION LOGIC)
+    // 1. REGISTRATION LOGIC
     public AuthResponse register(AuthRequest request) throws Exception {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new Exception("Email is already registered.");
         }
-
+        // ... (rest of registration logic) ...
         String roleString = request.getRole();
         Role userRole;
 
@@ -67,7 +69,7 @@ public class AuthenticationService {
         return new AuthResponse("User successfully registered! You can now log in.", userRole.name());
     }
 
-    // ... (2. LOGIN LOGIC)
+    // 2. LOGIN LOGIC
     public AuthResponse login(AuthRequest request) throws Exception {
         Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
 
@@ -86,41 +88,63 @@ public class AuthenticationService {
         return new AuthResponse("Login successful! Welcome back, " + user.getFirstName() + ".", user.getRole().name());
     }
 
-    // ... (3. FORGOT PASSWORD)
+    // 3. FORGOT PASSWORD (Generates token and sends email)
     public AuthResponse generateResetToken(AuthRequest request) throws Exception {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new Exception("User not found for this email."));
+        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
 
+        // Fail silently if user not found (security best practice)
+        if (userOptional.isEmpty()) {
+            return new AuthResponse("If an account exists, a password reset link has been sent to your email."); 
+        }
+        
+        User user = userOptional.get();
+        
         String token = UUID.randomUUID().toString();
-        LocalDateTime expiryDate = LocalDateTime.now().plusHours(1);
+        // Set expiry to 15 minutes
+        LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(15); 
 
+        // Uses standard non-Lombok setters (e.g., user.setResetToken())
         user.setResetToken(token);
         user.setTokenExpiryDate(expiryDate);
         userRepository.save(user);
 
-        return new AuthResponse("Password reset initiated. A link has been sent to your email.");
+        // Call the non-Lombok EmailService
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+
+        return new AuthResponse("If an account exists, a password reset link has been sent to your email.");
     }
 
-    // ... (4. RESET PASSWORD)
+    // 4. RESET PASSWORD (Validates token and updates password)
     public AuthResponse resetPassword(PasswordResetRequest request) throws Exception {
-        User user = userRepository.findByResetToken(request.getToken())
-                .orElseThrow(() -> new Exception("Invalid reset token."));
+        Optional<User> userOptional = userRepository.findByResetToken(request.getToken());
 
-        if (user.getTokenExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new Exception("Reset token has expired.");
+        if (userOptional.isEmpty()) {
+            throw new Exception("Invalid or used reset link. Please request a new one.");
+        }
+        
+        User user = userOptional.get();
+
+        if (user.getTokenExpiryDate() == null || user.getTokenExpiryDate().isBefore(LocalDateTime.now())) {
+            // Clear expired token fields to prevent re-use
+            user.setResetToken(null);
+            user.setTokenExpiryDate(null);
+            userRepository.save(user); 
+            throw new Exception("Reset link has expired. Please request a new one.");
         }
 
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(encodedPassword);
 
+        // Clear token fields after a successful reset
         user.setResetToken(null);
         user.setTokenExpiryDate(null);
         userRepository.save(user);
 
         return new AuthResponse("Password successfully reset.");
     }
+    
+    // ... (rest of methods like createInitialAdminUser, getCurrentUser) ...
 
-    // ... (5. INITIAL ADMIN CREATION)
     public void createInitialAdminUser(String email, String password, String firstName, String lastName) {
         Optional<User> adminOptional = userRepository.findByRole(Role.ADMIN);
 
@@ -137,7 +161,6 @@ public class AuthenticationService {
         }
     }
     
-    // 🚨 FIX: Return Optional<User> to handle unauthenticated (anonymous) access gracefully.
     public Optional<User> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -147,22 +170,18 @@ public class AuthenticationService {
 
         Object principal = authentication.getPrincipal();
 
-        // Check if the user is the default anonymous user created by Spring Security
         if (principal.equals("anonymousUser")) { 
              return Optional.empty(); // Explicitly handle the unauthenticated principal
         }
         
         String username = null;
         
-        // The principal is typically the UserDetails object you created
         if (principal instanceof UserDetails) {
             username = ((UserDetails) principal).getUsername();
         } else if (principal instanceof String) {
-            // This is the fallback if the principal is a raw string (like "anonymousUser" or a username)
             username = (String) principal;
         }
 
-        // Fetch the full User entity using the username (email)
         if (username != null && !username.equalsIgnoreCase("anonymousUser")) {
             return userRepository.findByEmail(username);
         }
