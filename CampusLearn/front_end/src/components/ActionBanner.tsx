@@ -1,6 +1,7 @@
 // src/components/ActionBanner.tsx
 
 import React from "react";
+import { useNavigate } from 'react-router-dom';
 
 interface ActionBannerProps {
   title: string;
@@ -16,11 +17,19 @@ const ActionBanner: React.FC<ActionBannerProps> = ({
   gradient,
   Icon,
 }) => {
+  const navigate = useNavigate();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Client-side navigation to avoid full page reloads
+    navigate(href);
+  };
+
   return (
-    <a
-      href={href}
+    <button
+      onClick={handleClick}
       className={`
-        flex items-center justify-center p-4 my-4 
+        flex items-center justify-center p-4 my-4 w-full
         rounded-2xl shadow-xl 
         bg-gradient-to-r ${gradient} text-white
         font-extrabold text-xl uppercase tracking-wider
@@ -30,7 +39,7 @@ const ActionBanner: React.FC<ActionBannerProps> = ({
     >
       <Icon className="w-7 h-7 mr-3 text-white z-10" />
       <span className="z-10 drop-shadow-lg">{title}</span>
-    </a>
+    </button>
   );
 };
 

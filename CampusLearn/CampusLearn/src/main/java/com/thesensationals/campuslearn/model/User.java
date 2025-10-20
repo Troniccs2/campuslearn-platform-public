@@ -31,10 +31,13 @@ public class User implements UserDetails {
     private String email; 
     
     @Column(nullable = false) 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password; 
     
     // Fields for Forgot Password
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String resetToken;             
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime tokenExpiryDate; 
 
     // 🚀 ADDED: Field to store the user's role

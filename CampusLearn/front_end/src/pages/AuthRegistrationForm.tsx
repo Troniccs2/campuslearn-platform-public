@@ -12,7 +12,7 @@ import {
 } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import BackButton from "../components/BackButton";
+// BackButton not used in this form currently
 import api from "../services/api";
 
 const AuthRegistrationForm: React.FC = () => {

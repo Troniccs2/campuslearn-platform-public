@@ -1,15 +1,33 @@
 // src/pages/PrivateMessagingPage.tsx
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaEdit } from 'react-icons/fa';
 import Layout from '../components/Layout';
 import BackButton from '../components/BackButton';
-import TopicCard from '../components/TopicCard';
+// TopicCard no longer used here; using ConversationPreviewCard instead
+import ConversationPreviewCard from '../components/ConversationPreviewCard';
 import InboxBanner from '../components/InboxBanner';
 import ActionBanner from '../components/ActionBanner';
+import api from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 
 const PrivateMessagingPage: React.FC = () => {
+  const [conversations, setConversations] = useState<any[]>([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const r = await api.get('/messages/conversations/me');
+        setConversations(r.data || []);
+      } catch (e) {
+        console.error('Failed to load conversations', e);
+      }
+    };
+    load();
+  }, []);
+
   return (
     <Layout variant="dark">
       <BackButton label="< Dashboard" />
@@ -19,26 +37,26 @@ const PrivateMessagingPage: React.FC = () => {
         <InboxBanner />
 
         {/* List of Conversation Cards (Using TopicCard for styling) */}
-        <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50">
-          {/* Note: In a real app, the topicName would be the sender's name/ID, and the author/update would be the last message snippet/time */}
-          <TopicCard 
-            topicName="Eva" 
-            author="Please check your marks on Moodle!" 
-            lastUpdated="" // Leaving lastUpdated empty to show only the message snippet
-            href="/messages/eva" 
-          />
-          <TopicCard 
-            topicName="577656" 
-            author="Hey bro, could you please help me with MAT281" 
-            lastUpdated=""
-            href="/messages/577656" 
-          />
-          <TopicCard 
-            topicName="644532" 
-            author="Good luck for writing tomorrow, you've got the notes!" 
-            lastUpdated=""
-            href="/messages/644532" 
-          />
+        <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50 space-y-4">
+          {conversations.length === 0 && (
+            <p className="text-white">No conversations yet. Click compose to start a new one.</p>
+          )}
+
+          {conversations.map((c) => {
+            const partner = c.participants?.find((p: any) => p.email !== undefined); // best-effort
+            const name = partner ? (partner.firstName ? `${partner.firstName} ${partner.lastName ?? ''}` : partner.email) : `Conversation ${c.id}`;
+            const lastMsg = c.messages && c.messages.length > 0 ? c.messages[c.messages.length -1].content : '';
+            const updatedAt = c.messages && c.messages.length > 0 ? c.messages[c.messages.length -1].sentAt : '';
+            return (
+              <ConversationPreviewCard
+                key={c.id}
+                name={name}
+                lastMessage={lastMsg}
+                updatedAt={updatedAt}
+                onClick={() => navigate(`/messages/${c.id}`)}
+              />
+            )
+          })}
         </div>
 
         {/* Compose New Message Action Banner */}
