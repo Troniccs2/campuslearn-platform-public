@@ -1,6 +1,8 @@
 package com.thesensationals.campuslearn.model;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set; // ADDED
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +11,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable; // ADDED
+import jakarta.persistence.ManyToMany; // ADDED
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -36,6 +40,15 @@ public class Topic {
     @Column(nullable = false)
     private LocalDateTime lastUpdated;
 
+    // NEW FEATURE: Many-to-Many relationship with User (Students)
+    @ManyToMany
+    @JoinTable(
+        name = "topic_students", // The new join table in PostgreSQL
+        joinColumns = @JoinColumn(name = "topic_id"),
+        inverseJoinColumns = @JoinColumn(name = "student_id")
+    )
+    private Set<User> enrolledStudents = new HashSet<>(); // Initialize set
+
     public Topic() {
         this.lastUpdated = LocalDateTime.now();
     }
@@ -47,51 +60,26 @@ public class Topic {
         this.lastUpdated = LocalDateTime.now();
     }
 
-    public Long getId() {
-        return id;
+    // --- EXISTING GETTERS AND SETTERS ---
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getTopicName() { return topicName; }
+    public void setTopicName(String topicName) { this.topicName = topicName; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
+    public User getAuthor() { return author; }
+    public void setAuthor(User author) { this.author = author; }
+    public LocalDateTime getLastUpdated() { return lastUpdated; }
+    public void setLastUpdated(LocalDateTime lastUpdated) { this.lastUpdated = lastUpdated; }
+
+    // --- NEW GETTER AND SETTER FOR ENROLLED STUDENTS ---
+    public Set<User> getEnrolledStudents() {
+        return enrolledStudents;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTopicName() {
-        return topicName;
-    }
-
-    public void setTopicName(String topicName) {
-        this.topicName = topicName;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public User getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(User author) {
-        this.author = author;
-    }
-
-    public LocalDateTime getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(LocalDateTime lastUpdated) {
-        this.lastUpdated = lastUpdated;
+    public void setEnrolledStudents(Set<User> enrolledStudents) {
+        this.enrolledStudents = enrolledStudents;
     }
 }

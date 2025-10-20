@@ -67,8 +67,8 @@ const SettingToggle: React.FC<SettingToggleProps> = ({ label, status, onToggle }
 
 
 const AccountManagementViewPage: React.FC = () => {
-    // Assuming the user ID comes from the URL
-    const { userId } = useParams<{ userId?: string }>();
+    // userId from URL is not used in this mock implementation
+    useParams<{ userId?: string }>();
     const navigate = useNavigate();
     
     // State for the user data (would be fetched from an API in a real app)

@@ -5,6 +5,18 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import UserSearchCard from '../components/UserSearchCard';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+
+// simple debounce helper
+const useDebounced = (value: string, delay = 400) => {
+  const [debounced, setDebounced] = React.useState(value);
+  React.useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+};
 
 // Reusing FaArrowLeft from previous components
 const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
@@ -16,15 +28,87 @@ const SearchComposePage: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  const mockUsers = [
+  type UserResult = { id: string | number; name?: string; firstName?: string; lastName?: string; role?: string; email?: string };
+  const mockUsers: UserResult[] = [
     { id: 'eva', name: 'Mrs. Eva', role: 'Tutor' },
     { id: 'raymond', name: 'Mr. Raymond', role: 'Tutor' },
     { id: '655243', name: '655243', role: 'Student' },
   ];
-  
-  const handleUserClick = (userId: string) => {
-      // Logic to start a conversation, usually navigating to the conversation view
-      navigate(`/messages/${userId}`);
+  const [results, setResults] = React.useState<UserResult[]>(mockUsers);
+  const [tutors, setTutors] = React.useState<UserResult[]>([]);
+  const debouncedTerm = useDebounced(searchTerm, 350);
+  const { isAuthenticated, user } = useAuth();
+
+  // Show no results when there's no search term (blank state)
+  const [hasTyped, setHasTyped] = React.useState(false);
+
+  // Automatic search on debounced term change
+  React.useEffect(() => {
+    const doSearch = async () => {
+      if (!debouncedTerm) {
+        setResults([]);
+        return;
+      }
+      try {
+        const r = await api.get('/messages/search?q=' + encodeURIComponent(debouncedTerm));
+        setResults(r.data || []);
+      } catch (e) {
+        console.error(e);
+        setResults([]);
+      }
+    };
+    doSearch();
+  }, [debouncedTerm]);
+
+  // Load tutors once on mount (displayed so you can click tutors without typing)
+  React.useEffect(() => {
+    const loadTutors = async () => {
+      try {
+        const r = await api.get('/messages/tutors');
+        setTutors(r.data || []);
+        // if no typing yet, show tutors as default results area
+        if (!hasTyped) setResults(r.data || []);
+      } catch (e) {
+        console.error('Failed to load tutors', e);
+      }
+    };
+    loadTutors();
+  }, [hasTyped]);
+
+  const handleUserClick = async (userId: string | number) => {
+    if (!isAuthenticated) {
+      // Redirect to login if not signed in
+      navigate('/auth/login');
+      return;
+    }
+    try {
+      // Ensure participant IDs are numeric (backend expects Longs)
+      const participantIds: number[] = [];
+      // include current user id if available client-side (harmless if backend also adds principal)
+      if (user && (user as any).id != null) {
+        participantIds.push(Number((user as any).id));
+      }
+      participantIds.push(Number(userId));
+
+      const body = { participantIds };
+      const resp = await api.post('/messages/create', body);
+      const conv = resp.data;
+      if (conv && conv.id) {
+        // navigate to conversation view
+        navigate(`/messages/${conv.id}`);
+      } else {
+        console.error('Invalid conversation returned', conv);
+        alert('Could not open conversation. Check console for details.');
+      }
+    } catch (e: any) {
+      // If unauthorized, force login; otherwise surface error
+      if (e?.response?.status === 401) {
+        navigate('/auth/login');
+        return;
+      }
+      console.error('Failed to create conversation', e);
+      alert('Failed to create conversation. See console for details.');
+    }
   };
 
   return (
@@ -57,23 +141,43 @@ const SearchComposePage: React.FC = () => {
             type="text"
             placeholder="Name or Student Number..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); if (e.target.value.trim().length > 0) setHasTyped(true); }}
             className="w-full p-4 rounded-lg bg-gray-800 bg-opacity-70 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors mb-8"
         />
 
         {/* Search Results / Default Prompt */}
         <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50">
             <h2 className="text-white text-center text-xl font-semibold mb-6">Click on a person to start a new conversation</h2>
-            
+
             <div className="flex justify-center gap-8 flex-wrap">
-                {mockUsers.map((user) => (
-                    <UserSearchCard 
-                        key={user.id}
-                        name={user.name}
-                        role={user.role}
-                        onClick={() => handleUserClick(user.id)}
-                    />
-                ))}
+              {!hasTyped && results.length === 0 && (
+                <p className="text-gray-200 text-center w-full">Start typing a name or student number to find a recipient, or pick a Tutor below.</p>
+              )}
+
+              {/* Tutors (always shown if available) */}
+              {tutors.length > 0 && (
+                <div className="w-full">
+                  <h3 className="text-white text-lg text-center mb-4">Available Tutors</h3>
+                  <div className="flex justify-center gap-8 flex-wrap">
+                    {tutors.map((t) => (
+                      <UserSearchCard key={t.id} name={(t.firstName ? `${t.firstName} ${t.lastName ?? ''}` : t.name) || t.email || ''} role={t.role ?? 'Tutor'} onClick={() => handleUserClick(t.id)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {hasTyped && results.length === 0 && (
+                <p className="text-gray-200 text-center w-full">No users found for "{searchTerm}"</p>
+              )}
+
+              {hasTyped && results.map((user) => (
+                <UserSearchCard 
+                  key={user.id}
+                  name={(user.firstName ? `${user.firstName} ${user.lastName ?? ''}` : user.name) || ''}
+                  role={user.role ?? 'Student'}
+                  onClick={() => handleUserClick(user.id)}
+                />
+              ))}
             </div>
         </div>
         

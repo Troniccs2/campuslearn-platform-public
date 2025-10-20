@@ -17,4 +17,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     // 🚀 ADDED: Custom finder method to check for an existing Admin user
     Optional<User> findByRole(Role role); 
+
+    // Find all users having a specific role (e.g., all tutors)
+    java.util.List<User> findAllByRole(Role role);
+
+    // Search users by first name, last name or email (used by messaging search)
+    java.util.List<User> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+        String firstName, String lastName, String email);
 }

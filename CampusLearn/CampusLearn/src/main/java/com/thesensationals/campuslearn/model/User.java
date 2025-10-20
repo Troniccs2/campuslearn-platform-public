@@ -31,14 +31,16 @@ public class User implements UserDetails {
     private String email; 
     
     @Column(nullable = false) 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password; 
     
     // Fields for Forgot Password
-    private String resetToken;             
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String resetToken;          
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime tokenExpiryDate; 
 
-    // 🚀 ADDED: Field to store the user's role
-    @Enumerated(EnumType.STRING) // Saves the Enum name ("STUDENT", "TUTOR", "ADMIN") as a string
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role; 
     
@@ -61,14 +63,12 @@ public class User implements UserDetails {
     public LocalDateTime getTokenExpiryDate() { return tokenExpiryDate; }
     public void setTokenExpiryDate(LocalDateTime tokenExpiryDate) { this.tokenExpiryDate = tokenExpiryDate; }
     
-    // 🚀 ADDED: Getter and Setter for Role
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
     
-    // --- UserDetails Implementation (Updated for Role) ---
+    // --- UserDetails Implementation ---
     @Override 
     public Collection<? extends GrantedAuthority> getAuthorities() { 
-        // Grants the user their single Role authority
         return List.of(new SimpleGrantedAuthority(role.getAuthority()));
     } 
 

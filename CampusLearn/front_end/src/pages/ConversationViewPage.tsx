@@ -1,11 +1,12 @@
 // src/pages/ConversationViewPage.tsx
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ConversationHeaderBanner from '../components/ConversationHeaderBanner';
 import ForumPostCard from '../components/ForumPostCard'; // Reusing for post structure
+import api from '../services/api';
 
 // Reusing FaArrowLeft from previous components
 const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
@@ -17,14 +18,52 @@ const ConversationViewPage: React.FC = () => {
   const navigate = useNavigate();
   const { conversationId } = useParams<{ conversationId: string }>(); 
 
-  // Mock data based on the conversationId (e.g., if conversationId is 'eva', name is 'Mrs. Eva')
-  const conversationPartner = {
-      name: 'Mrs. Eva',
-      role: 'Tutor',
-      // The current user is '577656' based on the screenshot
-      currentUserId: '577656 (You)' 
+  const [conversation, setConversation] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!conversationId) return;
+      try {
+        const r = await api.get(`/messages/${conversationId}/messages`);
+        setMessages(r.data || []);
+        // Get conversation details (participants) via conversations/me list
+        const convs = await api.get('/messages/conversations/me');
+  const conv = (convs.data || []).find((c: any) => String(c.id) === String(conversationId));
+        setConversation(conv || null);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    load();
+  }, [conversationId]);
+
+  const handlePost = async (content: string) => {
+    if (!conversationId) return;
+    try {
+      await api.post('/messages/send', { conversationId: Number(conversationId), content });
+      const r = await api.get(`/messages/${conversationId}/messages`);
+      setMessages(r.data || []);
+    } catch (e) {
+      console.error('send failed', e);
+      const status = (e as any)?.response?.status;
+      if (status === 401) {
+        // not authenticated
+        alert('You must be signed in to send messages. Redirecting to login...');
+        navigate('/auth/login');
+        return;
+      }
+      if (status === 403) {
+        alert('You are not a participant in this conversation. Returning to inbox.');
+        navigate('/messages');
+        return;
+      }
+      alert('Failed to send message. See console for details.');
+    }
   };
-  
+
+  const conversationPartner = (conversation?.participants && (conversation.participants as any)[0]) ?? { name: 'Unknown', role: '' };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 relative overflow-hidden">
       {/* Background elements (consistent) */}
@@ -50,35 +89,15 @@ const ConversationViewPage: React.FC = () => {
 
         <h1 className="text-4xl font-extrabold text-white mb-8 drop-shadow-lg">PM/CV</h1>
         
-        <ConversationHeaderBanner name={conversationPartner.name} role={conversationPartner.role} />
+        <ConversationHeaderBanner name={conversationPartner.firstName ? `${conversationPartner.firstName} ${conversationPartner.lastName ?? ''}` : conversationPartner.name} role={conversationPartner.role} />
 
         {/* --- Messages --- */}
         <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50">
-          
-          {/* Incoming Message (Mrs. Eva) - Note: ForumPostCard logic makes the author name align right. This is fine for now. */}
-          <ForumPostCard 
-            author={`${conversationPartner.name} (${conversationPartner.role})`} 
-            content="Good afternoon, please find the new uploaded files on DBA381 which is under Topics." 
-            updatedAt="" 
-          />
-          
-          {/* Incoming Message (Mrs. Eva) */}
-          <ForumPostCard 
-            author={`${conversationPartner.name} (${conversationPartner.role})`} 
-            content="Please note, that the information pertaining to ACID has been redacted due to redundancy!!!" 
-            updatedAt="" 
-          />
-          
-          {/* Outgoing Message (You) */}
-          <ForumPostCard 
-            author={conversationPartner.currentUserId} 
-            content="Thank you for the resources ma'am, and the heads up," 
-            updatedAt="" 
-          />
+          {messages.map((m) => (
+            <ForumPostCard key={m.id} author={m.sender?.firstName ? `${m.sender.firstName} ${m.sender.lastName ?? ''}` : m.sender?.email} content={m.content} updatedAt={m.sentAt} />
+          ))}
 
-          {/* Reply Box/Action (Special Card) */}
-          <ForumPostCard isReplyBox={true} author="" content="I'll just use my slides from last year!" updatedAt="" />
-          
+          <ForumPostCard isReplyBox={true} author="" content="" onPostSubmit={handlePost} updatedAt="" />
         </div>
         
       </main>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// navigate not required here
 import {
   FaKey,
   FaEnvelope,
@@ -12,7 +12,7 @@ import BackButton from "../components/BackButton";
 import api from "../services/api";
 
 const AuthForgotPasswordForm: React.FC = () => {
-  const navigate = useNavigate();
+  // navigate not needed for this form currently
 
   // State for Form Input
   const [email, setEmail] = useState<string>("");
@@ -46,9 +46,10 @@ const AuthForgotPasswordForm: React.FC = () => {
         );
         setEmail("");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Security best practice: also show the success message on common errors (like 404)
-      if (err.response) {
+      const rec = err as Record<string, unknown> | null;
+      if (rec && 'response' in rec) {
         setSuccessMessage(
           "If an account exists, a password reset link has been sent to your email."
         );

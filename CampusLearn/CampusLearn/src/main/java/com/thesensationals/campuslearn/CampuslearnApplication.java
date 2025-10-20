@@ -3,13 +3,15 @@ package com.thesensationals.campuslearn;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan; // <-- IMPORT ADDED
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableAsync; // ⬅️ CORRECT IMPORT
 
 import com.thesensationals.campuslearn.service.AuthenticationService;
 
 @SpringBootApplication
-@EntityScan(basePackages = "com.thesensationals.campuslearn.model") // <-- ANNOTATION ADDED
+@EntityScan(basePackages = "com.thesensationals.campuslearn.model")
+@EnableAsync // ⬅️ CORRECT ANNOTATION: Enables background thread processing for file uploads
 public class CampuslearnApplication {
 
     public static void main(String[] args) {

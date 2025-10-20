@@ -33,7 +33,8 @@ api.interceptors.response.use((response) => response, (error) => {
         // Clear the bad token and force a logout.
         removeAuthToken(); 
         console.error('Session expired or unauthorized. Logging out.');
-        // You should implement a full page redirect here (e.g., using window.location.href)
+        // Redirect to the login page so the SPA doesn't silently show blank screens
+        window.location.href = '/auth/login';
     }
     return Promise.reject(error);
 });
