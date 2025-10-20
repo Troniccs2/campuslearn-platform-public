@@ -69,11 +69,13 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable) // Use standard Spring Boot 3 syntax
             .authorizeHttpRequests(auth -> auth
                 
+                // 🚨 CRITICAL FIX: Allow all OPTIONS requests (CORS Preflight) to go through
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                
                 // Public Endpoints (No Authentication Required)
                 .requestMatchers("/api/auth/**").permitAll() 
                 
                 // FIX: Allow public access to the forum read endpoints
-                // Explicitly permit the categories endpoint first (clear intent)
                 .requestMatchers(HttpMethod.GET, "/api/forums/categories").permitAll()
                 // Permit any other forum GET endpoints (threads, thread view, etc.)
                 .requestMatchers(HttpMethod.GET, "/api/forums/**").permitAll()
