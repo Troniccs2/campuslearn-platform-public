@@ -26,36 +26,136 @@ const MultiSelectDropdown = ({
   selected: number[];
   onChange: (selectedIds: number[]) => void;
   disabled: boolean;
-}) => (
-  <div className="space-y-2">
-    <label className="text-gray-300 font-medium text-lg">
-      Select Students to Enroll (Hold **Ctrl/Cmd** to select multiple)
-    </label>
-    <select
-      multiple
-      value={selected.map(String)}
-      onChange={(e) => {
-        const selectedIds = Array.from(e.target.options)
-          .filter((option) => option.selected)
-          .map((option) => Number(option.value));
-        onChange(selectedIds);
-      }}
-      className="w-full p-4 rounded-lg bg-gray-800 bg-opacity-70 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors h-48"
-      disabled={disabled}
-    >
-      {options.length === 0 && (
-        <option disabled>
-          {selected.length > 0 ? "No Students Found" : "Loading students..."}
-        </option>
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleStudent = (studentId: number) => {
+    if (selected.includes(studentId)) {
+      onChange(selected.filter(id => id !== studentId));
+    } else {
+      onChange([...selected, studentId]);
+    }
+  };
+
+  const selectedStudents = options.filter(student => selected.includes(student.id));
+
+  return (
+    <div className="space-y-3">
+      <label className="text-white font-bold text-lg uppercase tracking-wider flex items-center gap-2">
+        <span className="w-2 h-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></span>
+        Select Students to Enroll
+      </label>
+      
+      {/* Selected Count Badge */}
+      {selected.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-full shadow-lg">
+            {selected.length} student{selected.length !== 1 ? 's' : ''} selected
+          </span>
+        </div>
       )}
-      {options.map((student) => (
-        <option key={student.id} value={student.id}>
-          {student.firstName} {student.lastName} ({student.email})
-        </option>
-      ))}
-    </select>
-  </div>
-);
+
+      {/* Custom Dropdown */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => !disabled && setIsOpen(!isOpen)}
+          disabled={disabled}
+          className={`w-full p-4 rounded-xl bg-gradient-to-r from-purple-800/40 to-indigo-800/40 backdrop-blur-md border border-purple-500/30 text-white font-medium text-left transition-all duration-300 ${
+            disabled ? 'opacity-50 cursor-not-allowed' : 'hover:from-purple-700/50 hover:to-indigo-700/50 hover:border-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50'
+          } shadow-xl`}
+        >
+          <div className="flex items-center justify-between">
+            <span className={selected.length === 0 ? 'text-gray-300' : 'text-white'}>
+              {selected.length === 0 
+                ? (options.length === 0 ? 'Loading students...' : 'Click to select students')
+                : `${selected.length} student${selected.length !== 1 ? 's' : ''} selected`
+              }
+            </span>
+            <svg 
+              className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+
+        {/* Dropdown Menu */}
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-2 max-h-64 overflow-y-auto rounded-xl bg-gradient-to-br from-gray-900/95 to-purple-900/95 backdrop-blur-md border border-purple-500/30 shadow-2xl">
+            {options.length === 0 ? (
+              <div className="p-4 text-gray-400 text-center font-medium">
+                No students available
+              </div>
+            ) : (
+              options.map((student) => {
+                const isSelected = selected.includes(student.id);
+                return (
+                  <div
+                    key={student.id}
+                    onClick={() => toggleStudent(student.id)}
+                    className={`p-4 cursor-pointer transition-all duration-200 border-b border-purple-500/20 last:border-b-0 ${
+                      isSelected 
+                        ? 'bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white' 
+                        : 'hover:bg-purple-700/30 text-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-semibold">
+                          {student.firstName} {student.lastName}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {student.email}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="w-5 h-5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Selected Students Preview */}
+      {selectedStudents.length > 0 && (
+        <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-purple-900/30 to-indigo-900/30 backdrop-blur-sm border border-purple-500/20">
+          <h4 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Enrolled Students:</h4>
+          <div className="flex flex-wrap gap-2">
+            {selectedStudents.map((student) => (
+              <span
+                key={student.id}
+                className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-600/70 to-pink-600/70 text-white text-sm font-medium rounded-full shadow-lg backdrop-blur-sm"
+              >
+                {student.firstName} {student.lastName}
+                <button
+                  type="button"
+                  onClick={() => toggleStudent(student.id)}
+                  className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
