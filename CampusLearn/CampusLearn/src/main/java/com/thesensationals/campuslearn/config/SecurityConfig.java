@@ -27,7 +27,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     // Inject the public frontend URL from the environment (set during cloud deployment)
-    // We use a safe default of the local URL if the environment variable is not set.
     @Value("${FRONTEND_URL:http://localhost:5173}")
     private String frontendUrl;
 
@@ -36,7 +35,6 @@ public class SecurityConfig {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // We are using BCrypt, which is a modern, strong hashing function.
         return new BCryptPasswordEncoder();
     }
 
@@ -49,15 +47,13 @@ public class SecurityConfig {
     }
     
     /**
-     * Defines a fully permissive CORS configuration for the frontend development server and the deployed server.
+     * Defines a fully permissive CORS configuration.
      */
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // --- CRITICAL CHANGE: Use the injected frontendUrl ---
-        // This list will contain "http://localhost:5173" and the deployed public URL (e.g., https://my-app.onrender.com)
-        // Note: For Render/Heroku, the URL is provided via an environment variable named FRONTEND_URL.
         configuration.setAllowedOrigins(List.of(frontendUrl));
         // ----------------------------------------------------
         
@@ -82,7 +78,7 @@ public class SecurityConfig {
         http
             // Apply the custom CORS configuration source
             .cors(Customizer.withDefaults())
-            // Disable CSRF for stateless API (as you are not managing session tokens/cookies for security)
+            // Disable CSRF for stateless API
             .csrf(AbstractHttpConfigurer::disable) 
             
             .authorizeHttpRequests(auth -> auth
@@ -90,27 +86,23 @@ public class SecurityConfig {
                 // CRITICAL FIX: Allow all OPTIONS requests (CORS Preflight) to go through
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
+                // 🚀 RENDER DEPLOYMENT FIX: Allow health check path to be accessed without authentication
+                .requestMatchers("/api/status").permitAll()
+                
                 // Public Endpoints (Authentication/Registration/Password Reset)
                 .requestMatchers("/api/auth/**").permitAll() 
                 
-                // ------------------ FILE ENDPOINT SECURITY (FIXED) ------------------
-                // 🛑 CHANGED to .permitAll() to prevent the login prompt when clicking the direct file link.
+                // ------------------ FILE ENDPOINT SECURITY ------------------
                 .requestMatchers(HttpMethod.GET, "/api/files/download/**").permitAll()
                 
                 // ------------------ FORUM ENDPOINT SECURITY ------------------
-                // Allow public access to all forum read endpoints
                 .requestMatchers(HttpMethod.GET, "/api/forums/categories").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/forums/**").permitAll()
                 
                 // ------------------ TOPIC ENDPOINT SECURITY ------------------
-                
-                // CRITICAL FIX: Allow unauthenticated (public) access to read a single topic by its slug
                 .requestMatchers(HttpMethod.GET, "/api/topics/*").permitAll() // Matches /api/topics/{slug}
                 
-                // DEV NOTE: Allow admin and debug endpoints for local dev (so the front-end dev server can fetch data)
-                // IMPORTANT: Remove or restrict these in production environments.
-                // Permit any method to /api/admin/** and /api/internal/admin/** during local development to speed testing.
-                // Also permit the debug ping endpoint.
+                // DEV NOTE: Allow admin and debug endpoints for local dev 
                 .requestMatchers("/api/admin/**").permitAll()
                 .requestMatchers("/api/internal/admin/**").permitAll()
                 .requestMatchers("/api/debug/**").permitAll()
@@ -125,7 +117,7 @@ public class SecurityConfig {
                 // Require authentication for all other requests that haven't been explicitly permitted
                 .anyRequest().authenticated()
             )
-            .httpBasic(Customizer.withDefaults()); // Use Basic Auth for initial testing
+            .httpBasic(Customizer.withDefaults()); 
             
         return http.build();
     }
