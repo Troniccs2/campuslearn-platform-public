@@ -36,7 +36,7 @@ public class User implements UserDetails {
     
     // Fields for Forgot Password
     @com.fasterxml.jackson.annotation.JsonIgnore
-    private String resetToken;          
+    private String resetToken;      
     @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime tokenExpiryDate; 
 
@@ -69,7 +69,10 @@ public class User implements UserDetails {
     // --- UserDetails Implementation ---
     @Override 
     public Collection<? extends GrantedAuthority> getAuthorities() { 
-        return List.of(new SimpleGrantedAuthority(role.getAuthority()));
+        // FIX: Ensure the authority string is prefixed with 'ROLE_' 
+        // by using role.name(), assuming your Role enum names are TUTOR, ADMIN, etc.
+        // Spring's hasRole() will correctly match this.
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     } 
 
     @Override 
