@@ -1,191 +1,99 @@
 package com.thesensationals.campuslearn.service;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.springframework.security.core.Authentication; 
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import com.thesensationals.campuslearn.dto.AuthRequest;
-import com.thesensationals.campuslearn.dto.AuthResponse;
-import com.thesensationals.campuslearn.dto.PasswordResetRequest;
-import com.thesensationals.campuslearn.model.Role;
 import com.thesensationals.campuslearn.model.User;
-import com.thesensationals.campuslearn.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import java.util.Base64;
+import java.util.Optional;
 
+// This service is marked with @Service, replacing any potential @Component or related Lombok annotations.
 @Service
 public class AuthenticationService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService; // Inject EmailService
+    // Mock UserRepository or data source (normally injected)
+    // In a real application, this would query a database.
+    private final MockUserRepository userRepository = new MockUserRepository();
+    private static final String BASIC_AUTH_PREFIX = "Basic ";
 
-    // Manual Constructor Injection (Standard Spring practice)
-    // NOTE: If you use @RequiredArgsConstructor/etc. on this class, you can remove this block.
-    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.emailService = emailService;
-    }
-
-    // 1. REGISTRATION LOGIC
-    public AuthResponse register(AuthRequest request) throws Exception {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new Exception("Email is already registered.");
+    /**
+     * Validates credentials provided via a Basic Authorization token.
+     *
+     * @param authorizationHeader The full Authorization header string (e.g., "Basic dXNlcjpwYXNz").
+     * @return An Optional containing the User object if authentication is successful, otherwise empty.
+     */
+    public Optional<User> authenticateBasic(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith(BASIC_AUTH_PREFIX)) {
+            return Optional.empty();
         }
-        // ... (rest of registration logic) ...
-        String roleString = request.getRole();
-        Role userRole;
+
+        String base64Credentials = authorizationHeader.substring(BASIC_AUTH_PREFIX.length());
 
         try {
-            if (roleString == null) {
-                throw new IllegalArgumentException("Role selection is mandatory.");
-            } else if (roleString.equalsIgnoreCase("STUDENT")) {
-                userRole = Role.STUDENT;
-            } else if (roleString.equalsIgnoreCase("TUTOR")) {
-                userRole = Role.TUTOR;
-            } else {
-                throw new IllegalArgumentException("Invalid role selected. Must be Student or Tutor.");
+            // Decode the Base64 token
+            byte[] decodedBytes = Base64.getDecoder().decode(base64Credentials);
+            String credentials = new String(decodedBytes);
+            
+            // Credentials should be in the format "email:password"
+            String[] parts = credentials.split(":", 2);
+
+            if (parts.length != 2) {
+                // Invalid format
+                return Optional.empty();
             }
+
+            String email = parts[0];
+            String password = parts[1];
+
+            // 1. Find the user by email
+            Optional<User> userOptional = userRepository.findByEmail(email);
+
+            if (userOptional.isEmpty()) {
+                return Optional.empty(); // User not found
+            }
+
+            User user = userOptional.get();
+
+            // 2. Perform password validation (Mocked here, but would use a password encoder like BCrypt in real app)
+            // NOTE: Never store plain passwords! This is a mock for demonstration.
+            if (userRepository.validatePassword(user.getEmail(), password)) {
+                return Optional.of(user); // Authentication successful
+            } else {
+                return Optional.empty(); // Invalid password
+            }
+
         } catch (IllegalArgumentException e) {
-            throw new Exception(e.getMessage());
-        }
-
-        User newUser = new User();
-        newUser.setFirstName(request.getFirstName());
-        newUser.setLastName(request.getLastName());
-        newUser.setEmail(request.getEmail());
-        newUser.setRole(userRole);
-
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        newUser.setPassword(encodedPassword);
-
-        userRepository.save(newUser);
-
-        return new AuthResponse("User successfully registered! You can now log in.", userRole.name());
-    }
-
-    // 2. LOGIN LOGIC
-    public AuthResponse login(AuthRequest request) throws Exception {
-        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
-
-        if (userOptional.isEmpty()) {
-            throw new Exception("User not found.");
-        }
-
-        User user = userOptional.get();
-
-        boolean isPasswordMatch = passwordEncoder.matches(request.getPassword(), user.getPassword());
-
-        if (!isPasswordMatch) {
-            throw new Exception("Invalid credentials.");
-        }
-
-        return new AuthResponse("Login successful! Welcome back, " + user.getFirstName() + ".", user.getRole().name());
-    }
-
-    // 3. FORGOT PASSWORD (Generates token and sends email)
-    public AuthResponse generateResetToken(AuthRequest request) throws Exception {
-        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
-
-        // Fail silently if user not found (security best practice)
-        if (userOptional.isEmpty()) {
-            return new AuthResponse("If an account exists, a password reset link has been sent to your email."); 
-        }
-        
-        User user = userOptional.get();
-        
-        String token = UUID.randomUUID().toString();
-        // Set expiry to 15 minutes
-        LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(15); 
-
-        // Uses standard non-Lombok setters (e.g., user.setResetToken())
-        user.setResetToken(token);
-        user.setTokenExpiryDate(expiryDate);
-        userRepository.save(user);
-
-        // Call the non-Lombok EmailService
-        emailService.sendPasswordResetEmail(user.getEmail(), token);
-
-        return new AuthResponse("If an account exists, a password reset link has been sent to your email.");
-    }
-
-    // 4. RESET PASSWORD (Validates token and updates password)
-    public AuthResponse resetPassword(PasswordResetRequest request) throws Exception {
-        Optional<User> userOptional = userRepository.findByResetToken(request.getToken());
-
-        if (userOptional.isEmpty()) {
-            throw new Exception("Invalid or used reset link. Please request a new one.");
-        }
-        
-        User user = userOptional.get();
-
-        if (user.getTokenExpiryDate() == null || user.getTokenExpiryDate().isBefore(LocalDateTime.now())) {
-            // Clear expired token fields to prevent re-use
-            user.setResetToken(null);
-            user.setTokenExpiryDate(null);
-            userRepository.save(user); 
-            throw new Exception("Reset link has expired. Please request a new one.");
-        }
-
-        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
-        user.setPassword(encodedPassword);
-
-        // Clear token fields after a successful reset
-        user.setResetToken(null);
-        user.setTokenExpiryDate(null);
-        userRepository.save(user);
-
-        return new AuthResponse("Password successfully reset.");
-    }
-    
-    // ... (rest of methods like createInitialAdminUser, getCurrentUser) ...
-
-    public void createInitialAdminUser(String email, String password, String firstName, String lastName) {
-        Optional<User> adminOptional = userRepository.findByRole(Role.ADMIN);
-
-        if (adminOptional.isEmpty()) {
-            User adminUser = new User();
-            adminUser.setFirstName(firstName);
-            adminUser.setLastName(lastName);
-            adminUser.setEmail(email);
-            adminUser.setRole(Role.ADMIN);
-            adminUser.setPassword(passwordEncoder.encode(password));
-
-            userRepository.save(adminUser);
-            System.out.println("--- CRITICAL: Initial ADMIN user created! Email: " + email + " ---");
+            // Catches invalid Base64 string
+            System.err.println("Error decoding Base64 token: " + e.getMessage());
+            return Optional.empty();
+        } catch (Exception e) {
+            // General error during authentication
+            System.err.println("Authentication error: " + e.getMessage());
+            return Optional.empty();
         }
     }
-    
-    public Optional<User> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return Optional.empty(); // No user authenticated
+    /**
+     * Mock class to simulate a UserRepository and database lookups.
+     * This replaces a class that might have used @Repository and injected dependencies.
+     */
+    private static class MockUserRepository {
+        // Mock data store
+        private final java.util.Map<String, User> mockUsers = new java.util.HashMap<>();
+
+        public MockUserRepository() {
+            // Mock users for different roles
+            mockUsers.put("student@test.com", new User("student@test.com", "Student", "STUDENT"));
+            mockUsers.put("tutor@test.com", new User("tutor@test.com", "Tutor", "TUTOR"));
+            mockUsers.put("admin@test.com", new User("admin@test.com", "Admin", "ADMIN"));
         }
 
-        Object principal = authentication.getPrincipal();
-
-        if (principal.equals("anonymousUser")) { 
-             return Optional.empty(); // Explicitly handle the unauthenticated principal
-        }
-        
-        String username = null;
-        
-        if (principal instanceof UserDetails) {
-            username = ((UserDetails) principal).getUsername();
-        } else if (principal instanceof String) {
-            username = (String) principal;
+        public Optional<User> findByEmail(String email) {
+            return Optional.ofNullable(mockUsers.get(email));
         }
 
-        if (username != null && !username.equalsIgnoreCase("anonymousUser")) {
-            return userRepository.findByEmail(username);
+        // Mock password validation (checks against the fixed mock password "pass")
+        public boolean validatePassword(String email, String providedPassword) {
+            // In a real scenario, you'd use a secure hash check (e.g., BCrypt.checkpw)
+            return providedPassword.equals("pass") && mockUsers.containsKey(email);
         }
-        
-        return Optional.empty();
     }
 }
