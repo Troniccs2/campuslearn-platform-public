@@ -18,9 +18,7 @@ Thumbs.db
 # Logs
 *.log
 
-# Environment files
-.env
-.env.local
+
 
 # React build
 frontend/build/
