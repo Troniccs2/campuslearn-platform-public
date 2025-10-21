@@ -2,10 +2,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaShieldAlt, FaComments, FaEnvelope, FaCog } from 'react-icons/fa';
+import { FaShieldAlt, FaComments, FaEnvelope } from 'react-icons/fa';
 import DashboardGridIcon from '../components/DashboardGridIcon';
 import MicrosoftCopilotWidget from '../components/MicrosoftCopilotWidget';
-import AdminPanelWidget from '../components/AdminPanelWidget';
 import Layout from '../components/Layout';
 import BackButton from '../components/BackButton';
 
@@ -19,8 +18,9 @@ const TutorDashboard: React.FC = () => {
         <div className="grid grid-cols-2 gap-4 sm:gap-6">
           <DashboardGridIcon title="TOPICS" Icon={FaShieldAlt} href="/topics" />
           <DashboardGridIcon title="FORUMS" Icon={FaComments} href="/forums" />
-          <DashboardGridIcon title="PRIVATE MESSAGING" Icon={FaEnvelope} href="/messages" />
-          <DashboardGridIcon title="PROFILE / SETTINGS" Icon={FaCog} href="/profile" />
+          <div className="col-span-2">
+            <DashboardGridIcon title="PRIVATE MESSAGING" Icon={FaEnvelope} href="/messages" />
+          </div>
         </div>
 
         {/* 🌟 AI BUTTON / COPILOT LINK ADDED HERE 🌟 */}
@@ -29,7 +29,6 @@ const TutorDashboard: React.FC = () => {
             <MicrosoftCopilotWidget />
         </Link>
         
-        <AdminPanelWidget />
     </Layout>
   );
 };

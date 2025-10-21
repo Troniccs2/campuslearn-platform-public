@@ -136,7 +136,7 @@ const ContentModerationPage: React.FC = () => {
                     </div>
                     {/* Top Right Nav Links */}
                     <div className="flex gap-4">
-                        {['Home', 'Private Messaging', 'Profile / Settings'].map(item => (
+                        {['Home', 'Private Messaging'].map(item => (
                             <button key={item} className="text-sm font-medium text-white/80 hover:text-white transition-colors p-2 rounded-md hover:bg-white/10">{item}</button>
                         ))}
                     </div>
