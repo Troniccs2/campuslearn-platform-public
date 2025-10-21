@@ -6,9 +6,7 @@ import React, { useState, useEffect, useContext, createContext } from "react";
 const useNavigate = () => {
   // Basic navigation simulation for single-file environment
   return (path: string) => {
-    console.log(`Navigating to: ${path}`);
-    // In a real browser environment, you would use window.location.href = path;
-    // Here we just log it and stop the timeout.
+    console.log(`Navigating to: ${path}`); // In a real browser environment, you would use window.location.href = path; // Here we just log it and stop the timeout.
   };
 };
 
@@ -20,10 +18,12 @@ const FaSignInAlt = ({ className = "" }) => (
     viewBox="0 0 512 512"
     style={{ width: "1em", height: "1em" }}
   >
+       {" "}
     <path
       fill="currentColor"
       d="M416 448h-84c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h84c22.1 0 40-17.9 40-40V148c0-22.1-17.9-40-40-40h-84c-6.6 0-12-5.4-12-12V56c0-6.6 5.4-12 12-12h84c48.6 0 88 39.4 88 88v240c0 48.6-39.4 88-88 88zm-84-332H184c-22.1 0-40 17.9-40 40v32h140V160c0-6.6 5.4-12 12-12h28c6.6 0 12 5.4 12 12v128c0 6.6-5.4 12-12 12h-28c-6.6 0-12-5.4-12-12V240H144v32c0 22.1 17.9 40 40 40h148c6.6 0 12-5.4 12-12v-40c0-6.6-5.4-12-12-12zM276 256h-28c-6.6 0-12-5.4-12-12v-32c0-6.6 5.4-12 12-12h28c6.6 0 12 5.4 12 12v32c0 6.6-5.4 12-12 12z"
     />
+     {" "}
   </svg>
 );
 const FaArrowLeft = ({ className = "" }) => (
@@ -33,10 +33,12 @@ const FaArrowLeft = ({ className = "" }) => (
     viewBox="0 0 448 512"
     style={{ width: "1em", height: "1em" }}
   >
+       {" "}
     <path
       fill="currentColor"
       d="M256 448c-8.188 0-16.38-3.125-22.62-9.375L38.63 278.6c-12.5-12.5-12.5-32.75 0-45.25l194.4-194.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25L109.3 256l194.4 194.4c12.5 12.5 12.5 32.75 0 45.25C272.4 444.9 264.2 448 256 448z"
     />
+     {" "}
   </svg>
 );
 const FaEnvelope = ({ className = "" }) => (
@@ -46,10 +48,12 @@ const FaEnvelope = ({ className = "" }) => (
     viewBox="0 0 512 512"
     style={{ width: "1em", height: "1em" }}
   >
+       {" "}
     <path
       fill="currentColor"
       d="M464 64C490.5 64 512 85.49 512 112V400C512 426.5 490.5 448 464 448H48C21.49 448 0 426.5 0 400V112C0 85.49 21.49 64 48 64H464zM403.4 192L256 345.9L108.6 192H403.4zM48 400V112L256 319.1L464 112V400H48z"
     />
+     {" "}
   </svg>
 );
 const FaLock = ({ className = "" }) => (
@@ -59,10 +63,12 @@ const FaLock = ({ className = "" }) => (
     viewBox="0 0 448 512"
     style={{ width: "1em", height: "1em" }}
   >
+       {" "}
     <path
       fill="currentColor"
       d="M224 256c-24.41 0-44 19.59-44 44v96c0 24.41 19.59 44 44 44h128c24.41 0 44-19.59 44-44v-96c0-24.41-19.59-44-44-44h-128zm-44-100v-44c0-48.56 39.44-88 88-88h128c48.56 0 88 39.44 88 88v44H180zm232 0v-44c0-48.56-39.44-88-88-88H224c-48.56 0-88 39.44-88 88v44h-28c-24.41 0-44 19.59-44 44v96c0 24.41 19.59 44 44 44h128c24.41 0 44-19.59 44-44v-96c0-24.41-19.59-44-44-44h-28zm24 140c0-13.25-10.75-24-24-24h-128c-13.25 0-24 10.75-24 24v96c0 13.25 10.75 24 24 24h128c13.25 0 24-10.75 24-24v-96z"
     />
+     {" "}
   </svg>
 );
 const FaSpinner = ({ className = "" }) => (
@@ -72,10 +78,12 @@ const FaSpinner = ({ className = "" }) => (
     viewBox="0 0 512 512"
     style={{ width: "1em", height: "1em" }}
   >
+       {" "}
     <path
       fill="currentColor"
       d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm335.5-16.5l-33.94-33.94c-12.49-12.49-32.75-12.49-45.24 0s-12.49 32.75 0 45.24l33.94 33.94c12.49 12.49 32.75 12.49 45.24 0s12.49-32.75 0-45.24zM175.5 352.5l-33.94 33.94c-12.49 12.49-32.75 12.49-45.24 0s-12.49-32.75 0-45.24l33.94-33.94c12.49-12.49 32.75-12.49 45.24 0s12.49 32.75 0 45.24zm208-160l33.94-33.94c12.49-12.49 12.49-32.75 0-45.24s-32.75-12.49-45.24 0l-33.94 33.94c-12.49 12.49-12.49 32.75 0 45.24s32.75 12.49 45.24 0zM130.5 130.5l-33.94 33.94c-12.49 12.49-32.75 12.49-45.24 0s-12.49-32.75 0-45.24l33.94-33.94c12.49-12.49 32.75-12.49 45.24 0s12.49 32.75 0 45.24z"
     />
+     {" "}
   </svg>
 );
 const FaTimesCircle = ({ className = "" }) => (
@@ -85,10 +93,12 @@ const FaTimesCircle = ({ className = "" }) => (
     viewBox="0 0 512 512"
     style={{ width: "1em", height: "1em" }}
   >
+       {" "}
     <path
       fill="currentColor"
       d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 464c-11.8 0-23.4-.9-34.9-2.7L256 464zm-144-48c-9.7-7.7-18.7-16.8-26.4-26.4L112 416zm304-48c9.7-7.7 18.7-16.8 26.4-26.4L400 416zm0-304c-9.7 7.7-18.7 16.8-26.4 26.4L400 96zm-304 0c9.7 7.7 18.7 16.8 26.4 26.4L112 96zm269.4 186.6L256 256l117.4-117.4c12.5-12.5 12.5-32.75 0-45.25s-32.75-12.5-45.25 0L256 208.8 138.6 91.43c-12.5-12.5-32.75-12.5-45.25 0s-12.5 32.75 0 45.25L208.8 256l-117.4 117.4c-12.5 12.5-12.5 32.75 0 45.25s32.75 12.5 45.25 0L256 303.2l117.4 117.4c12.5 12.5 32.75 12.5 45.25 0s12.5-32.75 0-45.25z"
     />
+     {" "}
   </svg>
 );
 
@@ -136,7 +146,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>
-      {children}
+            {children}   {" "}
     </AuthContext.Provider>
   );
 };
@@ -157,12 +167,11 @@ interface LoginResponse {
 
 const mockApiPost = async (
   url: string,
-  body: any,
+  _body: any, // FIX: Renamed 'body' to '_body' to resolve 'declared but its value is never read' TS error
   config: any
 ): Promise<{ status: number; data: LoginResponse }> => {
-  console.log("MOCK API CALL:", url, config);
+  console.log("MOCK API CALL:", url, config); // Simulate network delay
 
-  // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 800));
 
   const authHeader = config?.headers?.Authorization || "";
@@ -177,9 +186,8 @@ const mockApiPost = async (
   }
 
   try {
-    const [email, password] = atob(base64Credentials).split(":");
+    const [email, password] = atob(base64Credentials).split(":"); // Mock User Credential Check
 
-    // Mock User Credential Check
     if (email === "student@test.com" && password === "pass") {
       return {
         status: 200,
@@ -221,8 +229,7 @@ const mockApiPost = async (
     // Re-throw if it's already a controlled error object
     if ((e as any).response) {
       throw e;
-    }
-    // Handle Base64 decode error or other unexpected issues
+    } // Handle Base64 decode error or other unexpected issues
     throw {
       response: {
         status: 400,
@@ -242,23 +249,30 @@ const api = {
 // 6. Mock Header and Footer Components
 const Header: React.FC = () => (
   <header className="bg-white shadow-md p-4 sticky top-0 z-20">
+       {" "}
     <div className="max-w-6xl mx-auto flex justify-between items-center">
+           {" "}
       <h1 className="text-2xl font-extrabold text-purple-700">
-        Campus Learn MOCK
+                Campus Learn MOCK      {" "}
       </h1>
+           {" "}
       <div className="text-sm text-gray-500">
-        <FaSignInAlt className="inline mr-2 text-indigo-500" />
-        Login
+                <FaSignInAlt className="inline mr-2 text-indigo-500" />       
+        Login      {" "}
       </div>
+         {" "}
     </div>
+     {" "}
   </header>
 );
 
 const Footer: React.FC = () => (
   <footer className="bg-gray-800 text-white p-4 mt-auto">
+       {" "}
     <div className="max-w-6xl mx-auto text-center text-sm">
-      &copy; 2024 Campus Learn. All rights reserved.
+            &copy; 2024 Campus Learn. All rights reserved.    {" "}
     </div>
+     {" "}
   </footer>
 );
 
@@ -354,44 +368,46 @@ const AuthLoginForm: React.FC = () => {
 
   return (
     <AuthProvider>
-         {" "}
+                     {" "}
       <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-indigo-100 flex flex-col relative overflow-hidden font-sans">
-             {" "}
+                             {" "}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                 {" "}
+                                     {" "}
           <div className="absolute top-20 right-20 w-32 h-32 bg-purple-200 rounded-full opacity-30"></div>
-                 {" "}
+                                     {" "}
           <div
             className="absolute bottom-40 left-10 w-24 h-24 bg-indigo-200 rounded-full opacity-40 animate-bounce"
             style={{ animationDelay: "2s" }}
           ></div>
-                 {" "}
+                                     {" "}
           <div className="absolute top-1/4 left-1/4 w-16 h-16 bg-pink-200 rounded-full opacity-20"></div>
-               {" "}
+                                 {" "}
         </div>
-              <Header />     {" "}
+                      <Header />             {" "}
         <main className="w-full py-8 px-4 flex-grow">
-                 {" "}
+                                     {" "}
           <div className="max-w-6xl mx-auto w-full">
-                     {" "}
+                                             {" "}
             <div className="space-y-4 mb-10 md:mb-16">
-                         {" "}
+                                                     {" "}
               <div className="text-sm text-gray-500">
-                              Home/Authentication/LoginPortal            {" "}
+                                              Home/Authentication/LoginPortal  
+                                       {" "}
               </div>
-                         {" "}
+                                                     {" "}
               <button
                 onClick={() => navigate("/auth")}
                 className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-medium"
               >
-                              <FaArrowLeft className="text-lg" />             {" "}
-                <span>Back to Authentication</span>           {" "}
+                                             {" "}
+                <FaArrowLeft className="text-lg" />                             {" "}
+                <span>Back to Authentication</span>                         {" "}
               </button>
-                       {" "}
+                                                 {" "}
             </div>
-                     {" "}
+                                             {" "}
             <div className="flex justify-center w-full">
-                         {" "}
+                                                     {" "}
               <form
                 onSubmit={handleLogin}
                 className="rounded-3xl shadow-2xl p-8 sm:p-12 space-y-8 flex flex-col items-center border-2 border-purple-300 border-opacity-30 bg-white bg-opacity-80 backdrop-blur-lg relative"
@@ -400,68 +416,77 @@ const AuthLoginForm: React.FC = () => {
                   width: "100%",
                 }}
               >
-                             {" "}
+                                                             {" "}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-indigo-50 opacity-50 rounded-3xl"></div>
-                             {" "}
+                                                             {" "}
                 <div className="flex items-center gap-4 mb-6 relative z-10">
-                                 {" "}
+                                                                     {" "}
                   <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center shadow-2xl">
-                                     {" "}
+                                                                             {" "}
                     <FaSignInAlt className="text-white text-3xl" />             
-                     {" "}
+                                                           {" "}
                   </div>
-                                 {" "}
+                                                                     {" "}
                   <div>
-                                     {" "}
+                                                                             {" "}
                     <h3 className="text-3xl font-bold text-purple-900 drop-shadow-sm">
-                                          Login Portal                  {" "}
+                                                                Login Portal    
+                                                       {" "}
                     </h3>
-                                     {" "}
+                                                                             {" "}
                     <p className="text-sm text-purple-600 opacity-80">
-                                          Welcome back to Campus Learn          
-                             {" "}
+                                                                Welcome back to
+                      Campus Learn                                              
+                                   {" "}
                     </p>
-                                   {" "}
+                                                                         {" "}
                   </div>
-                               {" "}
+                                                                 {" "}
                 </div>
-                {/* --- MOCK LOGIN HINT --- */}
+                                {/* --- MOCK LOGIN HINT --- */}               {" "}
                 <div className="w-full p-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg text-xs relative z-10">
+                                   {" "}
                   <p className="font-semibold mb-1">
-                    Mock Credentials (Email / Password = pass):
+                                        Mock Credentials (Email / Password =
+                    pass):                  {" "}
                   </p>
+                                   {" "}
                   <ul className="list-disc list-inside space-y-0.5">
-                    <li>**Student:** student@test.com</li>
-                    <li>**Tutor:** tutor@test.com</li>
-                    <li>**Admin:** admin@test.com</li>
+                                        <li>**Student:** student@test.com</li> 
+                                      <li>**Tutor:** tutor@test.com</li>       
+                                <li>**Admin:** admin@test.com</li>             
+                       {" "}
                   </ul>
+                                 {" "}
                 </div>
-                {/* --- END MOCK HINT --- */}             {" "}
+                                {/* --- END MOCK HINT --- */}                   
+                         {" "}
                 {error && (
                   <div className="w-full p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center gap-2 relative z-10">
-                                     {" "}
+                                                                             {" "}
                     <FaTimesCircle className="flex-shrink-0" />                 {" "}
+                                       {" "}
                     <p className="text-sm font-medium">{error}</p>             
-                     {" "}
+                                                           {" "}
                   </div>
                 )}
-                             {" "}
+                                                             {" "}
                 {successMessage && (
                   <div className="w-full p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2 relative z-10">
-                                     {" "}
+                                                                             {" "}
                     <FaSpinner className="animate-spin flex-shrink-0" />       
-                             {" "}
+                                                                     {" "}
                     <p className="text-sm font-medium">{successMessage}</p>     
-                             {" "}
+                                                                   {" "}
                   </div>
                 )}
-                             {" "}
+                                                             {" "}
                 <div className="space-y-6 w-full relative z-10">
-                                 {" "}
+                                                                     {" "}
                   <div className="relative">
-                                     {" "}
+                                                                             {" "}
                     <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-600" />
-                                     {" "}
+                                                                             {" "}
                     <input
                       type="email"
                       placeholder="Enter Email"
@@ -470,13 +495,13 @@ const AuthLoginForm: React.FC = () => {
                       required
                       className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-700 bg-white shadow-md transition-all duration-300"
                     />
-                                   {" "}
+                                                                         {" "}
                   </div>
-                                 {" "}
+                                                                     {" "}
                   <div className="relative">
-                                     {" "}
+                                                                             {" "}
                     <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-600" />
-                                     {" "}
+                                                                             {" "}
                     <input
                       type="password"
                       placeholder="Enter Password"
@@ -485,11 +510,11 @@ const AuthLoginForm: React.FC = () => {
                       required
                       className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-700 bg-white shadow-md transition-all duration-300"
                     />
-                                   {" "}
+                                                                         {" "}
                   </div>
-                               {" "}
+                                                                 {" "}
                 </div>
-                             {" "}
+                                                             {" "}
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -499,29 +524,31 @@ const AuthLoginForm: React.FC = () => {
                       : "hover:scale-110 hover:-translate-y-1"
                   }`}
                 >
-                                 {" "}
+                                                                     {" "}
                   <span className="flex items-center justify-center gap-2">
-                                     {" "}
+                                                                             {" "}
                     {isLoading ? (
                       <FaSpinner className="animate-spin" />
                     ) : (
                       <FaSignInAlt />
                     )}
-                                      {isLoading ? "Logging In..." : "Login"}   
-                               {" "}
+                                                         {" "}
+                    {isLoading ? "Logging In..." : "Login"}                     
+                                                   {" "}
                   </span>
-                               {" "}
+                                                                 {" "}
                 </button>
-                           {" "}
+                                                         {" "}
               </form>
-                       {" "}
+                                                 {" "}
             </div>
-                   {" "}
+                                         {" "}
           </div>
-               {" "}
+                                 {" "}
         </main>
-              <Footer />   {" "}
+                      <Footer />         {" "}
       </div>
+         {" "}
     </AuthProvider>
   );
 };
