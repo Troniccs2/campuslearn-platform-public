@@ -1,9 +1,10 @@
 package com.thesensationals.campuslearn.dto;
 
-// Note: No JPA entity import needed for a simple input DTO
+import jakarta.validation.constraints.NotBlank;
 
 public class ForumPostCreationDTO {
 
+    @NotBlank(message = "Post content is required")
     private String content;
 
     // Default Constructor (required by Spring/Jackson)

@@ -2,6 +2,7 @@ package com.thesensationals.campuslearn.model;
 
 import java.time.Instant;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,6 +17,10 @@ public class ForumCategory {
 
     private String name;        // e.g., "Workshops"
     private String slug;        // e.g., "workshops"
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     private String lastAuthor;
     private Instant lastUpdated; // correctly handle date/time data
 
@@ -23,10 +28,11 @@ public class ForumCategory {
     public ForumCategory() {}
 
     // All-args constructor
-    public ForumCategory(Long id, String name, String slug, String lastAuthor, Instant lastUpdated) {
+    public ForumCategory(Long id, String name, String slug, String description, String lastAuthor, Instant lastUpdated) {
         this.id = id;
         this.name = name;
         this.slug = slug;
+        this.description = description;
         this.lastAuthor = lastAuthor;
         this.lastUpdated = lastUpdated;
     }
@@ -54,6 +60,14 @@ public class ForumCategory {
 
     public void setSlug(String slug) {
         this.slug = slug;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getLastAuthor() {

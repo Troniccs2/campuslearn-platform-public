@@ -10,7 +10,7 @@ interface FormInputCardProps {
 
 const FormInputCard: React.FC<FormInputCardProps> = ({ title, children }) => {
   return (
-    <div className="rounded-2xl shadow-xl overflow-hidden mb-8 bg-purple-700 bg-opacity-30 border border-purple-500 border-opacity-30 backdrop-blur-md">
+  <div className="rounded-2xl shadow-xl mb-8 bg-purple-700 bg-opacity-30 border border-purple-500 border-opacity-30 backdrop-blur-md">
       {/* Header Banner (Consistent Topic Details Style) */}
       <div 
         className="

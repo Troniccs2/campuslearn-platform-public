@@ -14,18 +14,20 @@ public class ForumCategoryDTO {
     private Long id;
     private String name;
     private String slug;
+    private String description;
     private String lastAuthor;
-    private Long lastUpdated;
+    private String lastUpdated;
 
     // FIX 1: MANUAL No-Argument Constructor (Required for Spring/Jackson and set-based conversion)
     public ForumCategoryDTO() {
     }
 
     // FIX 2: MANUAL All-Argument Constructor (Required by ForumService.convertToDto logic)
-    public ForumCategoryDTO(Long id, String name, String slug, String lastAuthor, Long lastUpdated) {
+    public ForumCategoryDTO(Long id, String name, String slug, String description, String lastAuthor, String lastUpdated) {
         this.id = id;
         this.name = name;
         this.slug = slug;
+        this.description = description;
         this.lastAuthor = lastAuthor;
         this.lastUpdated = lastUpdated;
     }

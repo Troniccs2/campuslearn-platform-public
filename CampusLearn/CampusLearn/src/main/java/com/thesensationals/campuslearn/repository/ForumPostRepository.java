@@ -9,4 +9,6 @@ import java.util.List; // REQUIRED IMPORT
 @Repository
 public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
     List<ForumPost> findByThread_ForumCategory_SlugAndThread_TopicName(String categorySlug, String threadSlug);
+
+    long countByThread_Id(Long threadId);
 }

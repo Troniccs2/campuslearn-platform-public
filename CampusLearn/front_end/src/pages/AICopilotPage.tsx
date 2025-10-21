@@ -3,32 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { FaExclamationTriangle, FaSpinner } from "react-icons/fa";
 import { GoogleGenAI, Chat } from "@google/genai";
 import { marked } from "marked";
-
-// ======================================================================
-// 💡 PLACEHOLDER COMPONENTS:
-// REMOVE these definitions (Lines 11-20) IF you use your original imports
-// ======================================================================
-const Layout: React.FC<{ variant: string; children: React.ReactNode }> = ({
-  children,
-}) => (
-  <div className={`min-h-screen p-4 md:p-8 bg-gray-900 font-sans`}>
-    {children}
-  </div>
-);
-const BackButton: React.FC<{ label: string }> = ({ label }) => (
-  <button className="text-white text-sm hover:text-purple-300 transition-colors py-2 px-3 rounded-lg border border-purple-700 bg-purple-800/50">
-    {"< Dashboard"}
-  </button>
-);
-const CopilotHeaderBanner: React.FC = () => (
-  <div className="bg-purple-600 p-4 rounded-xl text-white mb-6 text-center shadow-lg">
-    <p className="font-extrabold text-2xl">CampusLearn AI Copilot (Bravo)</p>
-    <p className="text-sm mt-1">
-      Ready to assist with platform info and academic queries.
-    </p>
-  </div>
-);
-// ======================================================================
+import Layout from "../components/Layout";
+import BackButton from "../components/BackButton";
+import CopilotHeaderBanner from "../components/CopilotHeaderBanner";
+import { useAuth } from "../context/AuthContext";
 
 // ----------------------------------------------------------------------
 // 💡 CONFIGURATION: SYSTEM INSTRUCTION AND API KEY
@@ -111,11 +89,26 @@ const ChatMessage: React.FC<{ message: Message }> = ({ message }) => {
   );
 };
 
+const getDashboardPath = (role: string | undefined): string => {
+  switch (role) {
+    case "ADMIN":
+      return "/admin-dashboard";
+    case "TUTOR":
+      return "/tutor-dashboard";
+    case "STUDENT":
+      return "/student-dashboard";
+    default:
+      return "/dashboard";
+  }
+};
+
 const AICopilotPage: React.FC = () => {
   const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const { user } = useAuth();
+  const dashboardPath = getDashboardPath(user?.role);
 
   const chatRef = useRef<Chat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -248,7 +241,7 @@ const AICopilotPage: React.FC = () => {
   return (
     <Layout variant="dark">
       <div className="flex justify-between items-center mb-6">
-        <BackButton label="< Dashboard" />
+        <BackButton label="< Dashboard" to={dashboardPath} />
         <button
           onClick={handleEscalate}
           className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors shadow-lg disabled:opacity-50"

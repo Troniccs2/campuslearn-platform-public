@@ -27,11 +27,30 @@ const FaArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
 // 1. Define the interface for the data structure coming from the backend
 interface ForumCategory {
   id: number;
-  name: string; // Maps to topicName for TopicCard
+  name: string;
   slug: string;
-  lastAuthor: string; // Maps to author for TopicCard
-  lastUpdated: string;
+  lastAuthor: string | null;
+  lastUpdated: string | null;
+  description?: string | null;
 }
+
+const parseTimestamp = (value?: string | null): number => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const sortCategories = (list: ForumCategory[]): ForumCategory[] =>
+  [...list].sort((a, b) => parseTimestamp(b.lastUpdated) - parseTimestamp(a.lastUpdated));
+
+const formatLastUpdated = (value?: string | null): string => {
+  if (!value) return "Recently updated";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Recently updated";
+  }
+  return date.toLocaleString();
+};
 
 const ForumsPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -41,6 +60,10 @@ const ForumsPage: React.FC = () => {
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateMode, setIsCreateMode] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 3. Role-based navigation logic (copied from TopicsPage for consistency)
   const getDashboardPath = (role: string | undefined): string => {
@@ -69,8 +92,9 @@ const ForumsPage: React.FC = () => {
       try {
         // NOTE: Use the correct API endpoint for categories
         const response = await api.get<ForumCategory[]>("/forums/categories");
-        setCategories(response.data);
+        setCategories(sortCategories(response.data));
       } catch (err) {
+        console.error("Failed to load forum categories", err);
         setError(
           "Could not load forum categories. Please check your network and backend connection."
         );
@@ -81,6 +105,34 @@ const ForumsPage: React.FC = () => {
 
     fetchCategories();
   }, [isAuthenticated]);
+
+  const handleCreateCategory = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) {
+      setCreateError("Please provide a forum name.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setCreateError(null);
+
+    try {
+      const response = await api.post<ForumCategory>("/forums/categories", {
+        name: trimmed,
+      });
+      setCategories((prev) => sortCategories([response.data, ...prev]));
+      setNewCategoryName("");
+      setIsCreateMode(false);
+    } catch (err) {
+      console.error("Failed to create forum category", err);
+      setCreateError(
+        "Could not create the forum category. Please try again or contact support."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // --- Conditional Rendering for Loading/Error States ---
 
@@ -107,7 +159,7 @@ const ForumsPage: React.FC = () => {
   return (
     <Layout variant="dark">
       {/* 5. Implement dynamic, role-based "Back to Dashboard" link */}
-      <div className="flex justify-start mb-6">
+      <div className="flex flex-wrap items-center gap-4 mb-6">
         <Link
           to={dashboardPath}
           className="flex items-center gap-3 px-6 py-3 bg-white bg-opacity-20 backdrop-blur-md text-white rounded-xl hover:bg-opacity-30 transition-all duration-300 shadow-lg font-medium border border-white border-opacity-30"
@@ -115,6 +167,17 @@ const ForumsPage: React.FC = () => {
           <FaArrowLeft className="w-4 h-4" />
           <span>&lt; Dashboard</span>
         </Link>
+
+        <button
+          type="button"
+          onClick={() => {
+            setIsCreateMode((open) => !open);
+            setCreateError(null);
+          }}
+          className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF00FF] to-[#8A2BE2] text-white font-semibold shadow-lg transition-transform duration-300 hover:scale-[1.02]"
+        >
+          {isCreateMode ? "Cancel" : "Create Forum Category"}
+        </button>
       </div>
 
       <h1 className="text-4xl font-extrabold text-white mb-8 drop-shadow-lg">
@@ -122,6 +185,53 @@ const ForumsPage: React.FC = () => {
       </h1>
 
       <ForumCategoriesBanner />
+
+      {isCreateMode && (
+        <form
+          onSubmit={handleCreateCategory}
+          className="mb-6 bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50 space-y-4"
+        >
+          <div>
+            <label htmlFor="forum-name" className="block text-sm font-semibold text-white uppercase tracking-wider mb-2">
+              Forum name
+            </label>
+            <input
+              id="forum-name"
+              type="text"
+              placeholder="e.g. Exam Preparation"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              className="w-full p-3 rounded-lg bg-gray-800 bg-opacity-70 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+              disabled={isSubmitting}
+              maxLength={120}
+            />
+          </div>
+          {createError && (
+            <p className="text-sm text-red-300 font-semibold">{createError}</p>
+          )}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setIsCreateMode(false);
+                setNewCategoryName("");
+                setCreateError(null);
+              }}
+              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
+              disabled={isSubmitting}
+            >
+              Close
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-lg bg-pink-600 text-white font-semibold hover:bg-pink-700 transition-colors disabled:opacity-60"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Create"}
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50">
         {/* Check if any categories were returned */}
@@ -134,10 +244,10 @@ const ForumsPage: React.FC = () => {
           categories.map((category) => (
             <TopicCard
               key={category.id}
-              topicName={category.name} // Maps ForumCategory.name to TopicCard prop
-              author={category.lastAuthor} // Maps ForumCategory.lastAuthor to TopicCard prop
-              lastUpdated={category.lastUpdated}
-              // CORRECTED: The link must include '/threads' to match the router definition
+              topicName={category.name}
+              author={category.lastAuthor ?? undefined}
+              lastUpdated={formatLastUpdated(category.lastUpdated)}
+              description={category.description ?? undefined}
               href={`/forums/${category.slug}/threads`}
             />
           ))

@@ -1,14 +1,15 @@
 // src/components/TopicCard.tsx
 
 import React from "react";
-import { Link } from "react-router-dom"; // 🚀 FIX: Import Link
+import { Link } from "react-router-dom";
 import { FaGraduationCap } from "react-icons/fa";
 
 interface TopicCardProps {
   topicName: string;
-  author: string;
-  lastUpdated: string; // The navigation path
-  href: string; // target is generally ignored by Link, but we keep it for now if you revert to <a>
+  author?: string | null;
+  lastUpdated?: string | null;
+  description?: string | null;
+  href: string;
   target?: string;
 }
 
@@ -16,34 +17,35 @@ const TopicCard: React.FC<TopicCardProps> = ({
   topicName,
   author,
   lastUpdated,
+  description,
   href,
   target,
 }) => {
+  const displayAuthor = author && author.trim().length > 0 ? author : "Community";
+  const displayUpdated = lastUpdated && lastUpdated.trim().length > 0 ? lastUpdated : null;
+
   return (
-    <Link // 🚀 FIX: Change <a> tag to <Link> component
-      to={href} // 🚀 FIX: Use 'to' prop for Link (instead of 'href')
+    <Link
+      to={href}
       target={target}
-      className="
-        flex items-center p-4 rounded-xl shadow-md mb-4
-        bg-purple-700 bg-opacity-30 border border-purple-500 border-opacity-30
-        text-white cursor-pointer transition-transform duration-300 hover:scale-[1.02]
-        backdrop-blur-sm
-      "
+      className="flex w-full items-center gap-4 p-4 rounded-xl shadow-md mb-4 bg-purple-700 bg-opacity-30 border border-purple-500 border-opacity-30 text-white cursor-pointer transition-transform duration-300 hover:scale-[1.02] backdrop-blur-sm"
     >
-                  {/* Campus Learn icon */}     {" "}
-      <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex-shrink-0 flex items-center justify-center mr-4">
-                        <FaGraduationCap className="text-white text-lg" />     {" "}
+      <div className="w-12 h-12 bg-white/20 rounded-full flex-shrink-0 flex items-center justify-center">
+        <FaGraduationCap className="text-white text-lg" />
       </div>
-                       {" "}
-      <div>
-                        <h3 className="text-xl font-semibold">{topicName}</h3> 
-             {" "}
+
+      <div className="flex-1 min-w-0">
+        <h3 className="text-xl font-semibold truncate">{topicName}</h3>
         <p className="text-sm opacity-80">
-                              By [{author}, Last updated: {lastUpdated}]        {" "}
+          By {displayAuthor}
+          {displayUpdated ? ` · Last updated: ${displayUpdated}` : ""}
         </p>
-                           {" "}
+        {description && (
+          <p className="text-sm text-gray-200 opacity-80 mt-2 line-clamp-2">
+            {description}
+          </p>
+        )}
       </div>
-                   {" "}
     </Link>
   );
 };

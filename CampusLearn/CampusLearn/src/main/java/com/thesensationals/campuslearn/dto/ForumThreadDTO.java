@@ -5,14 +5,14 @@ import com.thesensationals.campuslearn.model.ForumThread;
 
 public class ForumThreadDTO {
 
-    private Long id; 
+    private Long id;
     private String title;
     private String content;
     private String categorySlug;
-    
-    // ✅ CRITICAL FIX: The name of the field is now 'threadSlug' 
-    // to match the frontend, even though the database uses 'topicName'.
-    private String threadSlug; 
+    private String threadSlug;
+    private String authorName;
+    private String lastUpdated;
+    private long replyCount;
 
     // 1. Default Constructor
     public ForumThreadDTO() {
@@ -20,17 +20,19 @@ public class ForumThreadDTO {
 
     // 2. Constructor for converting the JPA Entity (ForumThread) to a DTO
     public ForumThreadDTO(ForumThread thread) {
-        this.id = thread.getId(); 
+        this(thread, 0L);
+    }
+
+    public ForumThreadDTO(ForumThread thread, long replyCount) {
+        this.id = thread.getId();
         this.title = thread.getTitle();
         this.content = thread.getContent();
         
-        // MAPPING: Map the entity's topicName to the DTO's threadSlug
-        this.threadSlug = thread.getTopicName(); // <--- Mapped from JPA Entity
-        
-        // Placeholder for category mapping
-        // if (thread.getForumCategory() != null) {
-        //      this.categorySlug = thread.getForumCategory().getSlug(); 
-        // }
+        this.threadSlug = thread.getTopicName();
+        this.categorySlug = thread.getForumCategory() != null ? thread.getForumCategory().getSlug() : null;
+        this.authorName = thread.getCreator();
+        this.lastUpdated = thread.getLastUpdated() != null ? thread.getLastUpdated().toString() : null;
+        this.replyCount = replyCount;
     }
 
     // --- Getters and Setters ---
@@ -47,9 +49,14 @@ public class ForumThreadDTO {
     public String getCategorySlug() { return categorySlug; }
     public void setCategorySlug(String categorySlug) { this.categorySlug = categorySlug; }
 
-    // ✅ NEW GETTER/SETTER: Now correctly named to expose 'threadSlug' in JSON
     public String getThreadSlug() { return threadSlug; }
     public void setThreadSlug(String threadSlug) { this.threadSlug = threadSlug; }
+    public String getAuthorName() { return authorName; }
+    public void setAuthorName(String authorName) { this.authorName = authorName; }
+    public String getLastUpdated() { return lastUpdated; }
+    public void setLastUpdated(String lastUpdated) { this.lastUpdated = lastUpdated; }
+    public long getReplyCount() { return replyCount; }
+    public void setReplyCount(long replyCount) { this.replyCount = replyCount; }
     
     // NOTE: Ensure you delete any old getTopicName/setTopicName methods 
     // that might conflict with the new name.
