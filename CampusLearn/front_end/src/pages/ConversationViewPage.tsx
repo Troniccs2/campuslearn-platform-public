@@ -5,7 +5,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ConversationHeaderBanner from '../components/ConversationHeaderBanner';
-import ForumPostCard from '../components/ForumPostCard'; // Reusing for post structure
+import ForumPostCard from '../components/ForumPostCard';
+import ForumPostDisplayCard from '../components/ForumPostDisplayCard';
 import api from '../services/api';
 
 // Reusing FaArrowLeft from previous components
@@ -94,10 +95,20 @@ const ConversationViewPage: React.FC = () => {
         {/* --- Messages --- */}
         <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50">
           {messages.map((m) => (
-            <ForumPostCard key={m.id} author={m.sender?.firstName ? `${m.sender.firstName} ${m.sender.lastName ?? ''}` : m.sender?.email} content={m.content} updatedAt={m.sentAt} />
+            <ForumPostDisplayCard
+              key={m.id}
+              post={{
+                id: m.id,
+                authorName: m.sender?.firstName
+                  ? `${m.sender.firstName} ${m.sender.lastName ?? ''}`.trim()
+                  : m.sender?.email ?? 'Unknown sender',
+                content: m.content,
+                postedDate: m.sentAt,
+              }}
+            />
           ))}
 
-          <ForumPostCard isReplyBox={true} author="" content="" onPostSubmit={handlePost} updatedAt="" />
+          <ForumPostCard onSubmit={handlePost} />
         </div>
         
       </main>
