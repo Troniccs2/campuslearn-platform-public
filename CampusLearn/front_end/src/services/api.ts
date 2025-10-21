@@ -1,12 +1,11 @@
 import axios, { type AxiosInstance } from 'axios';
 import { getStoredAuthToken, removeAuthToken } from '../utils/authUtils';
 
-// === CRITICAL CHANGE: Use the environment variable for deployment ===
-// FIX: Using @ts-ignore to suppress the TypeScript compiler error (code 2591) 
-// about the missing 'process' type definition, since the variable is provided at runtime.
-// @ts-ignore
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api'; 
-// ===================================================================
+// === FINAL CRITICAL FIX: Hardcoded Live Backend URL ===
+// The deployed application must point to its live backend service.
+// This bypasses local environment variables which fail to load during the Docker build process.
+const API_BASE_URL = 'https://campuslearn-backend-final.onrender.com/api'; 
+// =======================================================
 
 const api: AxiosInstance = axios.create({
     baseURL: API_BASE_URL,
