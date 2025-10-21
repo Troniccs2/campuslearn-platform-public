@@ -2,9 +2,10 @@ import axios, { type AxiosInstance } from 'axios';
 import { getStoredAuthToken, removeAuthToken } from '../utils/authUtils';
 
 // === FINAL CRITICAL FIX: Hardcoded Live Backend URL ===
-// The deployed application must point to its live backend service.
-// This bypasses local environment variables which fail to load during the Docker build process.
-const API_BASE_URL = 'https://campuslearn-backend-final.onrender.com/api'; 
+// Changed the baseURL to end at the server root, NOT including the '/api' suffix.
+// This allows the frontend to construct the URL correctly as:
+// [BASE_URL] + [ENDPOINT] -> '.../onrender.com' + '/api/topics'
+const API_BASE_URL = 'https://campuslearn-backend-final.onrender.com'; 
 // =======================================================
 
 const api: AxiosInstance = axios.create({
