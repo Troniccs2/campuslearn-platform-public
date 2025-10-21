@@ -31,13 +31,15 @@ const MultiSelectDropdown = ({
 
   const toggleStudent = (studentId: number) => {
     if (selected.includes(studentId)) {
-      onChange(selected.filter(id => id !== studentId));
+      onChange(selected.filter((id) => id !== studentId));
     } else {
       onChange([...selected, studentId]);
     }
   };
 
-  const selectedStudents = options.filter(student => selected.includes(student.id));
+  const selectedStudents = options.filter((student) =>
+    selected.includes(student.id)
+  );
 
   return (
     <div className="space-y-3">
@@ -45,12 +47,12 @@ const MultiSelectDropdown = ({
         <span className="w-2 h-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></span>
         Select Students to Enroll
       </label>
-      
+
       {/* Selected Count Badge */}
       {selected.length > 0 && (
         <div className="flex items-center gap-2">
           <span className="px-3 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-full shadow-lg">
-            {selected.length} student{selected.length !== 1 ? 's' : ''} selected
+            {selected.length} student{selected.length !== 1 ? "s" : ""} selected
           </span>
         </div>
       )}
@@ -62,30 +64,47 @@ const MultiSelectDropdown = ({
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           className={`w-full p-4 rounded-xl bg-gradient-to-r from-purple-800/40 to-indigo-800/40 backdrop-blur-md border border-purple-500/30 text-white font-medium text-left transition-all duration-300 ${
-            disabled ? 'opacity-50 cursor-not-allowed' : 'hover:from-purple-700/50 hover:to-indigo-700/50 hover:border-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50'
+            disabled
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:from-purple-700/50 hover:to-indigo-700/50 hover:border-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
           } shadow-xl`}
         >
           <div className="flex items-center justify-between">
-            <span className={selected.length === 0 ? 'text-gray-300' : 'text-white'}>
-              {selected.length === 0 
-                ? (options.length === 0 ? 'Loading students...' : 'Click to select students')
-                : `${selected.length} student${selected.length !== 1 ? 's' : ''} selected`
-              }
+            <span
+              className={selected.length === 0 ? "text-gray-300" : "text-white"}
+            >
+              {selected.length === 0
+                ? options.length === 0
+                  ? "Loading students..."
+                  : "Click to select students"
+                : `${selected.length} student${
+                    selected.length !== 1 ? "s" : ""
+                  } selected`}
             </span>
-            <svg 
-              className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className={`w-5 h-5 transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </div>
         </button>
 
-        {/* Dropdown Menu */}
+        {/* Dropdown Menu - FIX APPLIED HERE: Opening UPWARDS ⬆️ 
+           top-auto bottom-full forces the menu to anchor to the bottom of the button
+           and extend upwards, clearing the space below it for the POST button.
+        */}
         {isOpen && (
-          <div className="absolute z-50 w-full mt-2 max-h-64 overflow-y-auto rounded-xl bg-gradient-to-br from-gray-900/95 to-purple-900/95 backdrop-blur-md border border-purple-500/30 shadow-2xl">
+          <div className="absolute z-[9999] w-full mb-2 bottom-full max-h-40 overflow-y-auto rounded-xl bg-gradient-to-br from-gray-900/95 to-purple-900/95 backdrop-blur-md border border-purple-500/30 shadow-2xl">
             {options.length === 0 ? (
               <div className="p-4 text-gray-400 text-center font-medium">
                 No students available
@@ -98,9 +117,9 @@ const MultiSelectDropdown = ({
                     key={student.id}
                     onClick={() => toggleStudent(student.id)}
                     className={`p-4 cursor-pointer transition-all duration-200 border-b border-purple-500/20 last:border-b-0 ${
-                      isSelected 
-                        ? 'bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white' 
-                        : 'hover:bg-purple-700/30 text-gray-200'
+                      isSelected
+                        ? "bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white"
+                        : "hover:bg-purple-700/30 text-gray-200"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -114,8 +133,16 @@ const MultiSelectDropdown = ({
                       </div>
                       {isSelected && (
                         <div className="w-5 h-5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         </div>
                       )}
@@ -128,10 +155,13 @@ const MultiSelectDropdown = ({
         )}
       </div>
 
-      {/* Selected Students Preview */}
+      {/* Selected Students Preview (with max-h and scrollbar) */}
       {selectedStudents.length > 0 && (
-        <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-purple-900/30 to-indigo-900/30 backdrop-blur-sm border border-purple-500/20">
-          <h4 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Enrolled Students:</h4>
+        <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-purple-900/30 to-indigo-900/30 backdrop-blur-sm border border-purple-500/20 max-h-36 overflow-y-auto">
+          {/* Sticky header added for better UX during scroll */}
+          <h4 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider sticky top-0 bg-purple-900/50 p-2 -m-2 z-10">
+            Enrolled Students:
+          </h4>
           <div className="flex flex-wrap gap-2">
             {selectedStudents.map((student) => (
               <span
@@ -144,8 +174,16 @@ const MultiSelectDropdown = ({
                   onClick={() => toggleStudent(student.id)}
                   className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
                 >
-                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <svg
+                    className="w-2.5 h-2.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </button>
               </span>
@@ -224,8 +262,6 @@ const CreateTopicPage: React.FC = () => {
   };
 
   const handleCreateTopic = async (event: FormEvent) => {
-    // This is the correct place for preventDefault(),
-    // as it is guaranteed to receive the FormEvent from the <form onSubmit>
     event.preventDefault();
 
     console.log("handleCreateTopic initiated...");
@@ -345,19 +381,20 @@ const CreateTopicPage: React.FC = () => {
           />
         </FormInputCard>
 
-        {/* Student Selection Card */}
         <div className="mt-6">
-          <FormInputCard title="ENROLL STUDENTS">
-            <MultiSelectDropdown
-              options={availableStudents}
-              selected={selectedStudentIds}
-              onChange={setSelectedStudentIds}
-              disabled={isLoading}
-            />
-          </FormInputCard>
+          <div className="text-2xl font-bold text-white mb-4 uppercase tracking-wider">
+            ENROLL STUDENTS
+          </div>
+          <MultiSelectDropdown
+            options={availableStudents}
+            selected={selectedStudentIds}
+            onChange={setSelectedStudentIds}
+            disabled={isLoading}
+          />
         </div>
 
-        <div className="w-full mt-8">
+        {/* The z-50 is kept for safety, but the dropdown opening upwards is the main fix */}
+        <div className="w-full mt-8 relative z-50">
           {/* The ActionBanner button must have type="submit" to trigger the form */}
           <ActionBanner
             title={isLoading ? "POSTING TOPIC..." : "POST NEW TOPIC"}
@@ -367,10 +404,7 @@ const CreateTopicPage: React.FC = () => {
             className={`mt-8 ${
               isLoading ? "opacity-50 cursor-not-allowed" : "hover:scale-[1.02]"
             } transition-all`}
-            // 🚨 CRITICAL FIX: The onClick prop is removed or left empty,
-            // as the form's onSubmit handles the logic. We only rely on
-            // the button inside ActionBanner having type="submit".
-            // Leaving it as a dummy function to satisfy the component's prop requirement:
+            // The form's onSubmit handles the logic, this is a dummy function:
             onClick={() => {}}
           />
         </div>
