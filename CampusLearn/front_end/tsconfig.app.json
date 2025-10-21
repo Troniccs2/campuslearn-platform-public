@@ -18,11 +18,11 @@
 
     /* Linting */
     "strict": true,
-    // "noUnusedLocals": true, <-- REMOVED THIS LINE
-    "noUnusedParameters": true,
+    "noUnusedParameters": true, // We removed "noUnusedLocals" here!
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"]
 }
+
