@@ -85,6 +85,9 @@ public class SecurityConfig {
             
             .authorizeHttpRequests(auth -> auth
                 
+                // 🚀 FINAL FIX: Allow the root path (/) to stop the Basic Auth browser pop-up.
+                .requestMatchers("/").permitAll() 
+                
                 // 🚀 LOGIN/REGISTRATION FIX: Allow all OPTIONS requests (CORS Preflight) to go through
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
