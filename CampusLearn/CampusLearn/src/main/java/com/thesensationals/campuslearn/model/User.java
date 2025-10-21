@@ -37,7 +37,7 @@ public class User implements UserDetails {
     private String password;
 
     @Column(nullable = false)
-    private String firstName;
+    private String firstName; // Field is present
     
     @Column(nullable = false)
     private String lastName; // Required for getLastName() errors
@@ -73,6 +73,16 @@ public class User implements UserDetails {
     public void setId(Long id) {
         this.id = id;
     }
+
+    // FIX: Added getFirstName() and setFirstName() to resolve 'cannot find symbol' errors in DTOs and Controllers
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    // End FIX
 
     // Required by UserController
     public String getLastName() { 
