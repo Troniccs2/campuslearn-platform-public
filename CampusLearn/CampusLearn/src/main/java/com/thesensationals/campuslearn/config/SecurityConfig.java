@@ -29,6 +29,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     // Inject the public frontend URL from the environment (set during cloud deployment)
+    // NOTE: This value MUST exactly match the URL your browser is using (e.g., must include 'https://')
     @Value("${FRONTEND_URL:http://localhost:5173}")
     private String frontendUrl;
 
@@ -56,11 +57,15 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // --- CRITICAL FIX: Use the injected frontendUrl to allow API calls from the frontend ---
+        // The allowed origins list contains the production URL and the local development fallback
         configuration.setAllowedOrigins(List.of(frontendUrl));
         // ----------------------------------------------------
         
+        // Allow all standard methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); 
+        // Allow necessary headers for authentication and content type
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
+        // Required for cookies/sessions/Basic Auth with CORS
         configuration.setAllowCredentials(true); 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -81,11 +86,12 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable) 
             
             // *** CRITICAL ADDITION: Enforce stateless session policy ***
-            // This is mandatory when not using JWT or cookies to ensure Basic Auth works on every request.
+            // This stops Spring from trying to use cookies/sessions, forcing it to look for the Basic Auth header.
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             
             .authorizeHttpRequests(auth -> auth
                 
+                // Allow the root path /
                 .requestMatchers("/").permitAll() 
                 
                 // Allow all OPTIONS requests (CORS Preflight)
@@ -106,10 +112,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/internal/admin/**").permitAll()
                 .requestMatchers("/api/debug/**").permitAll()
 
-                // Protected Endpoint 1: Requires any authenticated user
+                // 1. GET /api/topics (list): Accessible by all authenticated users
                 .requestMatchers(HttpMethod.GET, "/api/topics").authenticated()
                 
-                // Protected Endpoint 2: Requires authenticated user with specific role
+                // 2. POST /api/topics: Only accessible by TUTOR and ADMIN roles for creation
                 .requestMatchers(HttpMethod.POST, "/api/topics").hasAnyRole("TUTOR", "ADMIN")
                 
                 // Require authentication for all other requests
