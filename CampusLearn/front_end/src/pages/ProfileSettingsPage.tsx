@@ -4,25 +4,8 @@ import React from 'react';
 import Layout from '../components/Layout';
 import BackButton from '../components/BackButton';
 import ProfileSettingsBanner from '../components/ProfileSettingsBanner';
-import SettingsRow from '../components/SettingsRow';
-
-// Mock profile state (for demonstration)
-const initialSettings = {
-    emailAlert: 'Enabled',
-    replyAlert: 'Enabled',
-    copilotSummary: 'Disabled',
-} as const;
 
 const ProfileSettingsPage: React.FC = () => {
-  const [settings, setSettings] = React.useState(initialSettings);
-  
-  // Example of toggling a setting
-  const handleToggle = (key: keyof typeof initialSettings) => {
-    setSettings(prev => ({
-        ...prev,
-        [key]: prev[key] === 'Enabled' ? 'Disabled' : 'Enabled'
-    }));
-  };
   
   return (
     <Layout variant="dark">
@@ -60,26 +43,7 @@ const ProfileSettingsPage: React.FC = () => {
                 />
             </div>
             
-            {/* Settings Section */}
-            <div className="space-y-4">
-                <h2 className="text-3xl font-bold text-center text-white pb-2 border-b border-purple-600">Settings</h2>
-                
-                <SettingsRow 
-                    label="Email & In-App Alert" 
-                    status={settings.emailAlert} 
-                    onClick={() => handleToggle('emailAlert')}
-                />
-                <SettingsRow 
-                    label="Reply to my Topic: In-App Alert Only" 
-                    status={settings.replyAlert} 
-                    onClick={() => handleToggle('replyAlert')}
-                />
-                <SettingsRow 
-                    label="Copilot Activity Summary: Weekly Email" 
-                    status={settings.copilotSummary} 
-                    onClick={() => handleToggle('copilotSummary')}
-                />
-            </div>
+            {/* Settings section removed — notification settings are not used */}
 
         </div>
     </Layout>

@@ -1,36 +1,29 @@
 // src/pages/AccountManagementViewPage.tsx
 
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Header from '../components/Header'; // Assuming this provides the top bar and logo
-import Footer from '../components/Footer'; // Assuming this provides the footer
-import { FaArrowLeft } from 'react-icons/fa'; // Use real icons for better visuals
-
-// --- Custom Icon/Component Mock-ups (Replace with actual if needed) ---
-// Using FaArrowLeft from the reference code for the back button
-// Re-using the Header and Footer from your provided code structure.
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import api from '../services/api';
+import { FaArrowLeft } from 'react-icons/fa';
 
 // Type for the user data displayed on the page
 interface UserAccountDetails {
-  fullName: string;
-  studentId: string;
-  certification: string;
-  // Settings can be expanded, but for now, simple strings suffice
-  emailAlert: 'Enabled' | 'Disabled';
-  replyAlert: 'Enabled' | 'Disabled';
-  copilotSummary: 'Enabled' | 'Disabled';
+    fullName: string;
+    role?: string;
 }
 
-// Mock Data - In a real app, this would be fetched based on the userId
-const mockUserData: UserAccountDetails = {
-  fullName: "Lindiwe Palesa Sibiya",
-  studentId: "577873",
-  certification: "BCOM 3rd Year",
-  emailAlert: "Enabled",
-  replyAlert: "Enabled",
-  copilotSummary: "Disabled",
+// Type returned by the backend API for users
+type UserApi = {
+  id: number;
+    fullName?: string;
+  full_name?: string;
+  studentId?: string;
+  student_id?: string;
+  certification?: string;
+  approved?: boolean;
+  role?: string;
 };
-// -------------------------------------------------------------------
 
 // Utility component for the rounded profile detail rows
 interface DetailRowProps {
@@ -46,57 +39,166 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
 );
 
 // Utility component for the settings dropdown/toggle
-interface SettingToggleProps {
-    label: string;
-    status: 'Enabled' | 'Disabled';
-    onToggle: () => void; // Function to handle status change
-}
-
-const SettingToggle: React.FC<SettingToggleProps> = ({ label, status, onToggle }) => (
-    <div className="flex justify-between items-center py-3 border-b border-purple-500/20 last:border-b-0 cursor-pointer" onClick={onToggle}>
-        <span className="text-sm text-gray-200">{label}</span>
-        <div className="flex items-center gap-2">
-            <span className={`text-sm font-semibold ${status === 'Enabled' ? 'text-green-400' : 'text-red-400'}`}>
-                ({status})
-            </span>
-            {/* Simple Up Arrow icon for visual consistency with the image */}
-            <span className="text-white text-lg leading-none transform -translate-y-px">^</span>
-        </div>
-    </div>
-);
+// Notification settings removed — not used in this project
 
 
 const AccountManagementViewPage: React.FC = () => {
-    // userId from URL is not used in this mock implementation
-    useParams<{ userId?: string }>();
+    const params = useParams<{ accountId?: string }>();
     const navigate = useNavigate();
-    
-    // State for the user data (would be fetched from an API in a real app)
-    const [accountDetails, setAccountDetails] = React.useState<UserAccountDetails>(mockUserData);
+    const location = useLocation();
+    // optional label passed from ManageAccountsPage via navigate state
+    type NavigationState = { label?: string } | undefined;
+    const navState = location.state as NavigationState;
+    const navLabel = navState?.label;
+    const [accountDetails, setAccountDetails] = React.useState<UserAccountDetails | null>(null);
+    const [isLoading, setIsLoading] = React.useState<boolean>(false);
+    const [error, setError] = React.useState<string | null>(null);
+    const [isActionLoading, setIsActionLoading] = React.useState<boolean>(false);
 
-    // Placeholder for handling setting changes
-    const handleToggle = (setting: keyof Pick<UserAccountDetails, 'emailAlert' | 'replyAlert' | 'copilotSummary'>) => {
-        // In a real application, you'd send an API request here
-        setAccountDetails(prev => ({
-            ...prev,
-            [setting]: prev[setting] === 'Enabled' ? 'Disabled' : 'Enabled'
-        }));
+    // Helper to safely extract an error message from unknown error shapes
+    const extractErrorMessage = (e: unknown): string => {
+        if (!e) return '';
+        if (typeof e === 'string') return e;
+        if (e instanceof Error) return e.message;
+        try { return JSON.stringify(e); } catch { return String(e); }
     };
 
-    // Placeholder actions
+    // fetchDetails is exposed so Retry button can call it
+    const fetchDetails = React.useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        setAccountDetails(null);
+        if (!params.accountId) {
+            setError('Missing accountId in URL');
+            setIsLoading(false);
+            return;
+        }
+        try {
+            const res = await api.get(`/internal/admin/accounts/${params.accountId}`);
+            const found: UserApi = res.data;
+            setAccountDetails({
+                fullName: (found.fullName || found.full_name || '') as string,
+                role: (found.role || '') as string,
+            });
+        } catch (err: unknown) {
+            console.error('Failed to load account details', err);
+            // Try to surface helpful info
+            interface AxiosLikeError { response?: { status?: number; data?: unknown }; message?: string }
+            const asAxios = (err && typeof err === 'object') ? (err as AxiosLikeError) : undefined;
+            const status = asAxios?.response?.status;
+            const data = asAxios?.response?.data;
+            const message = asAxios?.message ?? String(err);
+            // If server returned 404 and it looks like the request was routed to static resource handling,
+            // try two fallbacks: 1) retry with trailing slash, 2) fetch the list and find the user locally.
+                if (status === 404) {
+                try {
+                    console.warn('Primary single-user endpoint returned 404, retrying with trailing slash');
+                    const alt = await api.get(`/internal/admin/accounts/${params.accountId}/`);
+                    const foundAlt: UserApi = alt.data;
+                    setAccountDetails({
+                        fullName: (foundAlt.fullName || foundAlt.full_name || '') as string,
+                        role: (foundAlt.role || '') as string,
+                    });
+                    setIsLoading(false);
+                    return;
+                    } catch (altErr) {
+                    console.info('Retry with trailing slash also failed, attempting alternate by-id endpoint then list fallback', altErr);
+                    // Try alternate explicit endpoint we added server-side
+                    try {
+                        const byId = await api.get(`/internal/admin/accounts/by-id/${params.accountId}`);
+                        const foundById: UserApi = byId.data;
+                        setAccountDetails({
+                            fullName: (foundById.fullName || foundById.full_name || '') as string,
+                            role: (foundById.role || '') as string,
+                        });
+                        setIsLoading(false);
+                        return;
+                    } catch (byIdErr) {
+                        console.info('Alternate by-id endpoint failed, attempting list fallback', byIdErr);
+                    }
+
+                    try {
+                        const listRes = await api.get(`/internal/admin/accounts`);
+                        const list: UserApi[] = listRes.data || [];
+                        const foundFromList = list.find(u => String(u.id) === String(params.accountId));
+                        if (foundFromList) {
+                            setAccountDetails({
+                                fullName: (foundFromList.fullName || foundFromList.full_name || '') as string,
+                                role: (foundFromList.role || '') as string,
+                            });
+                            setIsLoading(false);
+                            return;
+                        }
+                    } catch (listErr) {
+                        console.error('List fallback also failed', listErr);
+                    }
+                }
+            }
+
+            setError(`Failed to load user (${status ?? 'network error'}): ${data ? JSON.stringify(data) : message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [params.accountId]);
+
+    React.useEffect(() => { fetchDetails(); }, [fetchDetails]);
+
+    // Notification toggles removed
+
     const handleAccept = () => {
-        console.log(`Accepted/Saved changes for user: ${accountDetails.fullName}`);
-        // Navigate back to the management list or dashboard
-        navigate('/dashboard/admin'); 
+        if (!accountDetails) return;
+        // API call to approve user
+        if (!params.accountId) return;
+        setIsActionLoading(true);
+        api.post(`/internal/admin/accounts/${params.accountId}/approve`)
+            .then(() => {
+                // reflect approved state locally if returned; navigate back
+                navigate('/dashboard/admin');
+            })
+            .catch(err => {
+                console.error('Approve failed', err);
+                setError('Approve failed: ' + extractErrorMessage(err));
+            })
+            .finally(() => setIsActionLoading(false));
     };
 
     const handleDelete = () => {
+        if (!accountDetails) return;
+        if (!params.accountId) return;
         if (window.confirm(`Are you sure you want to DELETE user: ${accountDetails.fullName}?`)) {
-            console.log(`Deleted user: ${accountDetails.fullName}`);
-            // API call to delete user, then navigate away
-            navigate('/dashboard/admin'); 
+            setIsActionLoading(true);
+            api.delete(`/internal/admin/accounts/${params.accountId}`)
+                .then(() => navigate('/dashboard/admin'))
+                .catch(err => {
+                    console.error('Delete failed', err);
+                    setError('Delete failed: ' + extractErrorMessage(err));
+                })
+                .finally(() => setIsActionLoading(false));
         }
     };
+
+    if (isLoading || !accountDetails) {
+        return (
+            <div className="p-6"> 
+                <h2 className="text-2xl font-semibold mb-4">Account Management</h2>
+                {isLoading ? (
+                    <div className="bg-white rounded shadow p-6">Loading user details...</div>
+                ) : error ? (
+                    <div className="bg-white rounded shadow p-6">
+                        <p className="text-red-600 font-semibold">{error}</p>
+                        <div className="mt-4">
+                            <button onClick={() => fetchDetails()} className="px-4 py-2 bg-purple-600 text-white rounded">Retry</button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="bg-white rounded shadow p-6">Loading user details...</div>
+                )}
+            </div>
+        );
+    }
+
+    // derive display label: prefer navigation state, then studentId if present, else fullName
+    const displayLabel = navLabel ?? accountDetails.fullName;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 relative overflow-hidden">
@@ -113,18 +215,8 @@ const AccountManagementViewPage: React.FC = () => {
                 {/* Top Navigation Panel - Mimicking the image structure */}
                 <div className="flex justify-between items-center bg-[#512c85] p-3 rounded-t-lg shadow-xl">
                     <div className="flex items-center">
-                        {/* Logo and Page Title (AdminPanel/StudentTutorAccountMangement) */}
-                        <div className="w-10 h-10 rounded-full bg-white/20 mr-3">
-                            {/*  */}
-                        </div>
+                        <div className="w-10 h-10 rounded-full bg-white/20 mr-3"></div>
                         <h1 className="text-xl font-semibold text-white">Profile</h1>
-                    </div>
-                    {/* Top Right Nav Links */}
-                    <div className="flex gap-4">
-                        {['Home', 'Topics', 'Forums'].map(item => (
-                            <button key={item} className="text-sm font-medium text-white/80 hover:text-white transition-colors p-2 rounded-md hover:bg-white/10">{item}</button>
-                        ))}
-                        <button className="text-sm font-medium text-white bg-pink-600 px-3 py-2 rounded-full shadow-lg">Private Messaging</button>
                     </div>
                 </div>
 
@@ -140,63 +232,55 @@ const AccountManagementViewPage: React.FC = () => {
                         <span>Manage</span>
                     </button>
 
-                    {/* Tutor/Student Details Banner - Using similar style to your AdminDashboard */}
+                    {/* Tutor/Student Details Banner */}
                     <div className="flex items-center justify-center p-4 rounded-xl bg-gradient-to-r from-purple-700 to-pink-600 text-white shadow-lg relative overflow-hidden">
                         <div className="absolute inset-0 opacity-20  z-0"></div>
-                        <div className="flex flex-col items-center z-10">
-                             <div className="flex items-center gap-3">
-                                 {/* Mock Icons for visual flair */}
-                                 <span className="text-4xl">🎓</span>
-                                 <span className="text-4xl">👤</span>
-                             </div>
-                            <h2 className="text-2xl font-bold uppercase tracking-widest mt-2">Tutor / Student Details</h2>
-                            <p className="text-sm font-light opacity-80">User Profiles & Information</p>
-                        </div>
+                            <div className="flex flex-col items-center z-10">
+                                 <div className="flex items-center gap-3">
+                                     <span className="text-4xl">🎓</span>
+                                     <span className="text-4xl">👤</span>
+                                 </div>
+                                <h2 className="text-2xl font-bold uppercase tracking-widest mt-2">{displayLabel}</h2>
+                                <p className="text-sm font-light opacity-80">User Profiles & Information</p>
+                            </div>
                     </div>
 
                     {/* Profile Details Section */}
                     <div className="p-4 rounded-xl bg-purple-900/50 space-y-4 shadow-inner">
                         <h3 className="text-2xl font-bold text-white text-center mb-6">Profile Details</h3>
                         
-                        <DetailRow label="Full Name:" value={accountDetails.fullName} />
-                        <DetailRow label="Student ID:" value={accountDetails.studentId} />
-                        <DetailRow label="Certification:" value={accountDetails.certification} />
+                        {/* split fullName into first/last when possible */}
+                        {(() => {
+                            const parts = (accountDetails.fullName || '').trim().split(/\s+/);
+                            const firstName = parts.length > 0 ? parts[0] : '';
+                            const lastName = parts.length > 1 ? parts.slice(1).join(' ') : '';
+                            return (
+                                <>
+                                    <DetailRow label="First Name:" value={firstName} />
+                                    <DetailRow label="Last Name:" value={lastName} />
+                                </>
+                            );
+                        })()}
+                        <DetailRow label="Role:" value={(accountDetails.role || 'Student')} />
                         
-                        {/* Settings Section */}
-                        <h3 className="text-2xl font-bold text-white text-center mt-8 mb-4">Settings</h3>
-                        
-                        <div className="space-y-1">
-                            <SettingToggle 
-                                label="Email & In-App Alert" 
-                                status={accountDetails.emailAlert} 
-                                onToggle={() => handleToggle('emailAlert')}
-                            />
-                            <SettingToggle 
-                                label="Reply to my topic: In-App Alert Only" 
-                                status={accountDetails.replyAlert} 
-                                onToggle={() => handleToggle('replyAlert')}
-                            />
-                            <SettingToggle 
-                                label="Copilot Activity Summary: Weekly Email" 
-                                status={accountDetails.copilotSummary} 
-                                onToggle={() => handleToggle('copilotSummary')}
-                            />
-                        </div>
+                        {/* Settings section removed (notifications not used) */}
                     </div>
                     
                     {/* Action Buttons */}
                     <div className="flex justify-center gap-6 pt-4">
                         <button
                             onClick={handleAccept}
-                            className="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors shadow-lg"
+                            disabled={isActionLoading}
+                            className={`px-8 py-3 ${isActionLoading ? 'bg-green-400' : 'bg-green-500 hover:bg-green-600'} text-white font-semibold rounded-lg transition-colors shadow-lg disabled:opacity-60`}
                         >
-                            Accept
+                            {isActionLoading ? 'Processing...' : 'Accept'}
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="px-8 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors shadow-lg"
+                            disabled={isActionLoading}
+                            className={`px-8 py-3 ${isActionLoading ? 'bg-red-400' : 'bg-red-500 hover:bg-red-600'} text-white font-semibold rounded-lg transition-colors shadow-lg disabled:opacity-60`}
                         >
-                            Delete
+                            {isActionLoading ? 'Processing...' : 'Delete'}
                         </button>
                     </div>
 

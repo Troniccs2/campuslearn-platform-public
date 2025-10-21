@@ -95,6 +95,14 @@ public class SecurityConfig {
                 
                 // CRITICAL FIX: Allow unauthenticated (public) access to read a single topic by its slug
                 .requestMatchers(HttpMethod.GET, "/api/topics/*").permitAll() // Matches /api/topics/{slug}
+                
+                // DEV NOTE: Allow admin and debug endpoints for local dev (so the front-end dev server can fetch data)
+                // IMPORTANT: Remove or restrict these in production environments.
+                // Permit any method to /api/admin/** and /api/internal/admin/** during local development to speed testing.
+                // Also permit the debug ping endpoint.
+                .requestMatchers("/api/admin/**").permitAll()
+                .requestMatchers("/api/internal/admin/**").permitAll()
+                .requestMatchers("/api/debug/**").permitAll()
 
                 // 1. GET /api/topics (list): Accessible by all authenticated users
                 .requestMatchers(HttpMethod.GET, "/api/topics").authenticated()
