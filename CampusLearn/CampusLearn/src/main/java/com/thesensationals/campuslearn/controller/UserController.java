@@ -42,11 +42,14 @@ public class UserController {
 
     // Mapper method to convert User entity to a safe DTO (using the new record)
     private UserDto mapUserToDto(User user) {
+        // FIX: The UserDto requires 5 arguments in this order:
+        // (id, email, firstName, lastName, role)
         return new UserDto(
             user.getId(),
+            user.getEmail(),
             user.getFirstName(),
             user.getLastName(),
-            user.getEmail()
+            user.getRole() // CRITICAL FIX: Added the 5th argument
         );
     }
 }
