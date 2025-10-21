@@ -1,7 +1,9 @@
 package com.thesensationals.campuslearn.config;
 
 import java.util.Arrays;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order; 
@@ -24,6 +26,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Order(1) 
 public class SecurityConfig {
 
+    // Inject the public frontend URL from the environment (set during cloud deployment)
+    // We use a safe default of the local URL if the environment variable is not set.
+    @Value("${FRONTEND_URL:http://localhost:5173}")
+    private String frontendUrl;
+
     /**
      * Defines the PasswordEncoder bean.
      */
@@ -42,13 +49,17 @@ public class SecurityConfig {
     }
     
     /**
-     * Defines a fully permissive CORS configuration for the frontend development server.
+     * Defines a fully permissive CORS configuration for the frontend development server and the deployed server.
      */
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // IMPORTANT: Replace "http://localhost:5173" if your frontend URL changes
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); 
+        
+        // --- CRITICAL CHANGE: Use the injected frontendUrl ---
+        // This list will contain "http://localhost:5173" and the deployed public URL (e.g., https://my-app.onrender.com)
+        // Note: For Render/Heroku, the URL is provided via an environment variable named FRONTEND_URL.
+        configuration.setAllowedOrigins(List.of(frontendUrl));
+        // ----------------------------------------------------
         
         // Allow all standard methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); 
