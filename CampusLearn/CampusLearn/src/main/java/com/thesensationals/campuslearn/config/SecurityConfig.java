@@ -27,6 +27,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     // Inject the public frontend URL from the environment (set during cloud deployment)
+    // NOTE: This value MUST exactly match the URL your browser is using (e.g., must include 'https://')
     @Value("${FRONTEND_URL:http://localhost:5173}")
     private String frontendUrl;
 
@@ -53,7 +54,8 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // --- CRITICAL CHANGE: Use the injected frontendUrl ---
+        // --- CRITICAL FIX: Use the injected frontendUrl to allow API calls from the frontend ---
+        // The allowed origins list contains the production URL and the local development fallback
         configuration.setAllowedOrigins(List.of(frontendUrl));
         // ----------------------------------------------------
         
@@ -83,7 +85,7 @@ public class SecurityConfig {
             
             .authorizeHttpRequests(auth -> auth
                 
-                // CRITICAL FIX: Allow all OPTIONS requests (CORS Preflight) to go through
+                // 🚀 LOGIN/REGISTRATION FIX: Allow all OPTIONS requests (CORS Preflight) to go through
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
                 // 🚀 RENDER DEPLOYMENT FIX: Allow health check path to be accessed without authentication
