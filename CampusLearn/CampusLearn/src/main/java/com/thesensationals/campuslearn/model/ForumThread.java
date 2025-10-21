@@ -2,6 +2,7 @@ package com.thesensationals.campuslearn.model;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.List; // Import List
 
 @Entity
 @Table(name = "forum_thread")
@@ -28,9 +29,14 @@ public class ForumThread {
     @JoinColumn(name = "category_id", nullable = false)
     private ForumCategory forumCategory; 
 
+    // 🛑 CRITICAL ADDITION: Posts relationship (Kept LAZY for performance)
+    @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("postedAt ASC") // Assuming you want posts sorted by time
+    private List<ForumPost> posts; 
+
     public ForumThread() {}
 
-    // --- START OF COMPILATION FIX: ADDED GETTERS AND SETTERS ---
+    // --- START OF GETTERS AND SETTERS ---
 
     public Long getId() {
         return id;
@@ -86,5 +92,14 @@ public class ForumThread {
 
     public void setForumCategory(ForumCategory forumCategory) {
         this.forumCategory = forumCategory;
+    }
+
+    // 🛑 CRITICAL ADDITION: Getters and setters for Posts list
+    public List<ForumPost> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<ForumPost> posts) {
+        this.posts = posts;
     }
 }

@@ -24,7 +24,7 @@ public class ForumService {
         this.threadRepository = threadRepository;
     }
 
-    // --- Category Methods ---
+    // --- Category Methods (Unchanged) ---
 
     public List<ForumCategoryDTO> getAllCategories() {
         return categoryRepository.findAll().stream() 
@@ -46,20 +46,22 @@ public class ForumService {
         return categoryRepository.findBySlug(slug);
     }
     
-    // --- Thread Methods ---
+    // --- Thread Methods (CRITICAL CHECK) ---
 
-    // Fixed to return DTO List
+    // Correctly returns DTO List
     public List<ForumThreadDTO> getThreadsByCategorySlug(String categorySlug) {
+        // Uses the correct Repository method to fetch by relationship slug
         return threadRepository.findByForumCategory_Slug(categorySlug).stream()
-            .map(ForumThreadDTO::new) 
+            .map(ForumThreadDTO::new) // ✅ Uses the constructor that maps topicName
             .collect(Collectors.toList()); 
     }
 
     /**
-     * Finds a single thread, fixed to return DTO.
+     * Finds a single thread, returns DTO.
      */
     public Optional<ForumThreadDTO> getThreadBySlugs(String categorySlug, String threadSlug) {
+        // Note: threadSlug in the path maps to topicName in the repository method
         return threadRepository.findByForumCategory_SlugAndTopicName(categorySlug, threadSlug)
-            .map(ForumThreadDTO::new); 
+            .map(ForumThreadDTO::new); // ✅ Uses the constructor that maps topicName
     }
 }

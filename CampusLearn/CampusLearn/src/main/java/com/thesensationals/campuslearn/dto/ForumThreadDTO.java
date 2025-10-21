@@ -1,97 +1,56 @@
 package com.thesensationals.campuslearn.dto;
 
 import com.thesensationals.campuslearn.model.ForumThread;
+// NOTE: Remove the import for @JsonProperty if it was added
 
 public class ForumThreadDTO {
-    
-    private Long id;
+
+    private Long id; 
     private String title;
-    private String topicName; // Slug
-    private String content; 
-    private String creator; 
-    private Long lastUpdated;
-    private String categorySlug; 
-    private String categoryName;
-
-    public ForumThreadDTO() {}
-
-    // Constructor to map from the entity 
-    public ForumThreadDTO(ForumThread thread) {
-        this.id = thread.getId();
-        this.title = thread.getTitle();
-        this.topicName = thread.getTopicName();
-        this.content = thread.getContent();
-        this.creator = thread.getCreator();
-        this.lastUpdated = thread.getLastUpdated().toEpochMilli(); 
-        
-        this.categorySlug = thread.getForumCategory().getSlug();
-        this.categoryName = thread.getForumCategory().getName();
-    }
+    private String content;
+    private String categorySlug;
     
-    // Getters and Setters (omitted for brevity, but they must be present)
-    // ... all getters and setters for the fields above
+    // ✅ CRITICAL FIX: The name of the field is now 'threadSlug' 
+    // to match the frontend, even though the database uses 'topicName'.
+    private String threadSlug; 
 
-    public Long getId() {
-        return id;
+    // 1. Default Constructor
+    public ForumThreadDTO() {
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    // 2. Constructor for converting the JPA Entity (ForumThread) to a DTO
+    public ForumThreadDTO(ForumThread thread) {
+        this.id = thread.getId(); 
+        this.title = thread.getTitle();
+        this.content = thread.getContent();
+        
+        // MAPPING: Map the entity's topicName to the DTO's threadSlug
+        this.threadSlug = thread.getTopicName(); // <--- Mapped from JPA Entity
+        
+        // Placeholder for category mapping
+        // if (thread.getForumCategory() != null) {
+        //      this.categorySlug = thread.getForumCategory().getSlug(); 
+        // }
     }
 
-    public String getTitle() {
-        return title;
-    }
+    // --- Getters and Setters ---
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getTopicName() {
-        return topicName;
-    }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
 
-    public void setTopicName(String topicName) {
-        this.topicName = topicName;
-    }
+    public String getCategorySlug() { return categorySlug; }
+    public void setCategorySlug(String categorySlug) { this.categorySlug = categorySlug; }
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getCreator() {
-        return creator;
-    }
-
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
-    public Long getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(Long lastUpdated) {
-        this.lastUpdated = lastUpdated;
-    }
-
-    public String getCategorySlug() {
-        return categorySlug;
-    }
-
-    public void setCategorySlug(String categorySlug) {
-        this.categorySlug = categorySlug;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
+    // ✅ NEW GETTER/SETTER: Now correctly named to expose 'threadSlug' in JSON
+    public String getThreadSlug() { return threadSlug; }
+    public void setThreadSlug(String threadSlug) { this.threadSlug = threadSlug; }
+    
+    // NOTE: Ensure you delete any old getTopicName/setTopicName methods 
+    // that might conflict with the new name.
 }

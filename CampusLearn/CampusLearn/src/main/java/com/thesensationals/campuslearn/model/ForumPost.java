@@ -1,49 +1,74 @@
 package com.thesensationals.campuslearn.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.Data; 
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "forum_post")
-@Data // Keep @Data for other methods, but explicitly add the missing setters
-@NoArgsConstructor
-@AllArgsConstructor
 public class ForumPost {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY) 
-    @JoinColumn(name = "thread_id", nullable = false) 
-    @JsonBackReference
+    @Column(name = "author_name", nullable = false)
+    private String authorName; // Stored user name
+
+    @Column(name = "posted_at", nullable = false)
+    private Instant postedAt;
+
+    // 🛑 CRITICAL FIX: The inverse side of the relationship
+    // This property must be named 'thread' to match the mappedBy="thread" in ForumThread.java
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "thread_id", nullable = false)
     private ForumThread thread; 
 
-    private String authorName;
-
-    private LocalDateTime postedAt;
-
-    // 🛑 MANUAL FIX: Add setters explicitly to resolve 'cannot find symbol' errors in Controller 🛑
-    public void setThread(ForumThread thread) {
-        this.thread = thread;
+    public ForumPost() {
+        this.postedAt = Instant.now();
     }
     
-    public void setAuthorName(String authorName) {
-        this.authorName = authorName;
+    // --- GETTERS AND SETTERS ---
+
+    public Long getId() {
+        return id;
     }
-    
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
     public void setContent(String content) {
         this.content = content;
     }
-    
-    public void setPostedAt(LocalDateTime postedAt) {
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
+
+    public Instant getPostedAt() {
+        return postedAt;
+    }
+
+    public void setPostedAt(Instant postedAt) {
         this.postedAt = postedAt;
+    }
+
+    public ForumThread getThread() {
+        return thread;
+    }
+
+    public void setThread(ForumThread thread) {
+        this.thread = thread;
     }
 }

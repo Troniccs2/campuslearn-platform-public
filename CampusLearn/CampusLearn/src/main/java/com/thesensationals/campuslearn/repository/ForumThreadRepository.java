@@ -18,6 +18,16 @@ public interface ForumThreadRepository extends JpaRepository<ForumThread, Long> 
     // 2. FIX: Uses the correct JPA naming convention to avoid the native query issues
     List<ForumThread> findByForumCategory_Slug(String categorySlug);
 
-    // 3. Finds Thread by Category's slug AND Thread's topicName.
+    // 3. Original method (kept for other usages, but likely not the one being called for the full view)
     Optional<ForumThread> findByForumCategory_SlugAndTopicName(String categorySlug, String threadSlug);
+
+    // 🛑 CRITICAL FIX: Custom query to fetch the thread EAGERLY along with its posts.
+    @Query("SELECT t FROM ForumThread t " +
+           "JOIN FETCH t.forumCategory c " +
+           "LEFT JOIN FETCH t.posts p " +
+           "WHERE c.slug = :categorySlug AND t.topicName = :threadSlug " +
+           "ORDER BY p.postedAt ASC") // Ensure posts are sorted
+    Optional<ForumThread> findThreadViewBySlugsWithPosts(
+        @Param("categorySlug") String categorySlug, 
+        @Param("threadSlug") String threadSlug);
 }

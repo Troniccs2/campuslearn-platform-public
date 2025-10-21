@@ -1,85 +1,88 @@
-// src/pages/ForumThreadListPage.tsx
-
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
+import { FaPlusCircle, FaRegCommentDots, FaUser } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import TopicCard from "../components/TopicCard";
-import BrowseThreadsBanner from "../components/BrowseThreadsBanner";
 import api from "../services/api";
-import { FaArrowLeft } from "react-icons/fa";
 
-// Interface for the data fetched from the backend
-interface ForumThread {
+// Interface for a single Thread object returned from the backend
+interface ForumThreadHeader {
   id: number;
   title: string;
-  slug: string;
+  // ✅ FIX 1: CHANGE to threadSlug to match the DTO @JsonProperty
+  threadSlug: string;
   authorName: string;
-  // FIX: Must be 'string' to match the TopicCard component's prop expectation.
+  replyCount: number;
   lastUpdated: string;
+  categorySlug: string;
+}
+
+// Interface for the Forum Category details
+interface ForumCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
 }
 
 const ForumThreadListPage: React.FC = () => {
-  const navigate = useNavigate();
-
-  // 🚀 FIX: Assume the router parameter is named 'slug'
-  // This must match the variable name used in your React Router setup (e.g., <Route path="/forums/:slug/threads" ... />)
   const { slug: categorySlug } = useParams<{ slug: string }>();
 
-  const [threads, setThreads] = useState<ForumThread[]>([]);
+  const [category, setCategory] = useState<ForumCategory | null>(null);
+  const [threads, setThreads] = useState<ForumThreadHeader[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Dynamic name display
-  const categoryName = categorySlug
-    ? categorySlug.charAt(0).toUpperCase() +
-      // FIX: Use regex to replace ALL hyphens globally
-      categorySlug.slice(1).replace(/-/g, " ")
-    : "Forum Category";
-
-  // Fetch threads from the backend
-  useEffect(() => {
-    // 🚀 CRITICAL CHECK: Early exit if slug is missing to prevent 404
+  const fetchThreadsData = useCallback(async () => {
     if (!categorySlug) {
+      setError("Category not specified in URL.");
       setIsLoading(false);
-      // This error prevents the fetch from running with an invalid URL
-      setError("Category URL parameter is missing. Check the navigation link.");
       return;
     }
 
-    const fetchThreads = async () => {
-      try {
-        // Call the Spring Boot endpoint: /forums/{categorySlug}/threads
-        const url = `/forums/${categorySlug}/threads`;
+    setIsLoading(true);
+    setError(null);
 
-        const response = await api.get<ForumThread[]>(url);
+    try {
+      const categoryResponse = await api.get<ForumCategory>(
+        `/forums/${categorySlug}`
+      );
+      setCategory(categoryResponse.data);
 
-        setThreads(response.data);
-      } catch (err) {
-        console.error("Failed to fetch threads:", err);
-        // Show the specific error message you want the user to see
-        setError(
-          "Could not load forum threads. Please ensure the backend is running and the URL is correct."
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      const threadsResponse = await api.get<ForumThreadHeader[]>(
+        `/forums/${categorySlug}/threads`
+      );
 
-    fetchThreads();
-  }, [categorySlug]); // Re-fetch if the category slug changes
+      const transformedThreads = threadsResponse.data.map((thread) => ({
+        ...thread,
+        categorySlug: thread.categorySlug || categorySlug,
+      }));
+      setThreads(transformedThreads);
+    } catch (err) {
+      console.error("Failed to fetch thread list:", err);
+      setError(
+        "Could not load forum threads. Ensure the backend is running and the API endpoint is correct."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [categorySlug]);
+
+  useEffect(() => {
+    fetchThreadsData();
+  }, [fetchThreadsData]);
 
   if (isLoading) {
-    // Simple loading state
     return (
-      <div className="text-white text-center mt-20">Loading threads...</div>
+      <div className="min-h-screen bg-gray-900 text-white flex justify-center items-center">
+        Loading threads...
+      </div>
     );
   }
 
   if (error) {
-    // Simple error state
     return (
-      <div className="text-red-400 text-center mt-20 font-semibold">
+      <div className="min-h-screen bg-gray-900 text-red-400 p-8 font-semibold">
         {error}
       </div>
     );
@@ -88,45 +91,76 @@ const ForumThreadListPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 relative overflow-hidden">
       <Header />
-
-      <main className="max-w-4xl mx-auto py-4 px-4 space-y-6 relative z-10">
-        {/* "Back to Categories" Link */}
-        <div className="flex justify-start mb-6">
-          <button
-            onClick={() => navigate("/forums")}
-            className="flex items-center gap-3 px-6 py-3 bg-white bg-opacity-20 backdrop-blur-md text-white rounded-xl hover:bg-opacity-30 transition-all duration-300 shadow-lg font-medium border border-white border-opacity-30"
+      <main className="max-w-4xl mx-auto py-4 px-4 space-y-8 relative z-10">
+        {/* Category Header */}
+        <div className="flex items-center justify-between border-b border-purple-700 pb-4">
+          <h1 className="text-4xl font-extrabold text-white drop-shadow-lg">
+            {category?.name || "Forum Category"}
+          </h1>
+          <Link
+            to={`/forums/create-thread?category=${categorySlug}`}
+            className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors shadow-lg font-medium"
           >
-            <FaArrowLeft className="w-4 h-4" />
-            <span>&lt; Categories</span>
-          </button>
+            <FaPlusCircle className="w-4 h-4" />
+            New Thread
+          </Link>
         </div>
 
-        <h1 className="text-4xl font-extrabold text-white mb-8 drop-shadow-lg">
-          {categoryName}
-        </h1>
+        <p className="text-gray-300 italic">
+          {category?.description || "A place for community discussion."}
+        </p>
 
-        <BrowseThreadsBanner />
-
-        {/* List of Thread Cards (Dynamic Mapping) */}
-        <div className="bg-purple-900 bg-opacity-40 rounded-3xl p-6 shadow-xl border border-purple-800 border-opacity-50">
-          {threads.length === 0 ? (
-            <p className="text-gray-200 text-center py-4">
-              No threads found in this category.
-            </p>
-          ) : (
+        {/* Thread List Section */}
+        <section className="space-y-3 pt-4">
+          {threads.length > 0 ? (
             threads.map((thread) => (
-              <TopicCard
+              <div
                 key={thread.id}
-                topicName={thread.title} // Use the thread title from DB
-                author={thread.authorName} // Use the author name from DB
-                lastUpdated={thread.lastUpdated} // Use the timestamp from DB
-                href={`/forums/${categorySlug}/${thread.slug}`} // Build the navigation link
-              />
-            ))
-          )}
-        </div>
-      </main>
+                className="
+                  flex justify-between items-center p-4 rounded-xl shadow-lg 
+                  bg-purple-900 bg-opacity-30 hover:bg-opacity-40 transition-colors 
+                  border-l-4 border-pink-500
+                "
+              >
+                {/* Thread Title and Link (CRITICAL FIX APPLIED HERE) */}
+                <div className="flex-1 min-w-0">
+                  <Link
+                    // ✅ FIX 2: Use thread.threadSlug to construct the URL
+                    to={`/forums/${categorySlug}/${thread.threadSlug}`}
+                    className="text-xl font-bold text-white hover:text-pink-400 transition-colors truncate block"
+                  >
+                    {thread.title}
+                  </Link>
+                  <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
+                    <FaUser className="w-3 h-3" />
+                    <span className="font-medium">
+                      Started by: {thread.authorName}
+                    </span>
+                  </p>
+                </div>
 
+                {/* Thread Stats */}
+                <div className="flex-shrink-0 text-right space-y-1 ml-4">
+                  <p className="text-sm text-gray-300 flex items-center justify-end gap-1">
+                    <FaRegCommentDots className="w-3 h-3 text-pink-400" />
+                    {thread.replyCount} Replies
+                  </p>
+                  <p className="text-xs italic text-gray-400">
+                    Last activity: {thread.lastUpdated}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center p-12 bg-purple-900 bg-opacity-30 rounded-xl">
+              <p className="text-gray-300 font-medium text-lg">
+                No threads found in this category yet. Be the first to start a
+                conversation!
+              </p>
+            </div>
+          )}
+        </section>
+      </main>
       <Footer />
     </div>
   );
