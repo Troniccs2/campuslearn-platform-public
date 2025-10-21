@@ -14,7 +14,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 # Copy the built files from the build stage 
 # *** NOTE: If your 'npm run build' outputs to a folder named 'dist', CHANGE 'build' below! ***
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 # Nginx default port is 80
 EXPOSE 80
-# The Nginx server starts automatically
+# The Nginx server starts automatically here
